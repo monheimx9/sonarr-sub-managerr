@@ -13,6 +13,7 @@ import configus
 SONARR_HOST_URL = configus.CONF_SONARR_HOST_URL
 SONARR_API = configus.CONF_SONARR_API
 TEMP_FOLDER = configus.CONF_TEMP_FOLDER
+DEFAULT_LANG = configus.CONF_DEFAULT_LANG
 
 
 class Episode():
@@ -169,6 +170,8 @@ class Tracks():
                                   "track_lang": track_lang,
                                   "default": default}
                     self.__subs.append(track_info)
+            if DEFAULT_LANG in track_lang:
+                default = "default."
 
     def identify(self, video_file: str) -> bool:
         json_data = ""

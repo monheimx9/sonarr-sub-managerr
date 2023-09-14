@@ -4,3 +4,4 @@ CONF_TEMP_FOLDER = './temp/'
 CONF_GRABING_FOLDER = "./grabs/"
 CONF_SUBTITLE_PATH = "~/Documents/subtitles/"
 CONF_PROGRESS_FOLDER = './progress/current.txt'
+CONF_DEFAULT_LANG = 'fr'
