@@ -12,7 +12,7 @@ import configus
 
 SONARR_HOST_URL = configus.CONF_SONARR_HOST_URL
 SONARR_API = configus.CONF_SONARR_API
-TEMP_FOLDER = "./temp/"
+TEMP_FOLDER = configus.CONF_TEMP_FOLDER
 
 
 class Episode():
