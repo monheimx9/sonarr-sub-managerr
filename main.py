@@ -14,10 +14,11 @@ from episodus import Episode
 from episodus import Tracks
 from episodus import Sonarr
 from episodus import Subtitles
+import configus
 
-GRABING_FOLDER = "./grabs/"
-SUBTITLE_PATH = "/home/monheim/Documents/subtitles/"
-PROGRESS_FOLDER = './progress/current.txt'
+GRABING_FOLDER = configus.CONF_GRABING_FOLDER
+SUBTITLE_PATH = configus.CONF_SUBTITLE_PATH
+PROGRESS_FOLDER = configus.CONF_PROGRESS_FOLDER
 
 
 def episode_num_from_path(path: str) -> int:

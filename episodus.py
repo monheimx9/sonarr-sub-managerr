@@ -8,10 +8,10 @@ from pyarr import SonarrAPI
 import json
 import os
 import subprocess
+import configus
 
-
-SONARR_HOST_URL = 'http://10.100.3.2:8989'
-SONARR_API = '6339d80ef2354a8dbdf3ce8fd4528d4d'
+SONARR_HOST_URL = configus.CONF_SONARR_HOST_URL
+SONARR_API = configus.CONF_SONARR_API
 TEMP_FOLDER = "./temp/"
 
 
