@@ -122,56 +122,57 @@ class Tracks():
             video_path = self._video_path
         if (json_data.get("tracks") is not None):
             for track in json_data["tracks"]:
-                default = ""
                 if track["type"] == "subtitles":
-                    track_props = track["properties"]
-                    sub_type = track_props.get("codec_id")
-                    sub_type_extention = self.extension(sub_type)
-                    track_id = track["id"]
-                    is_forced = track_props.get("forced_track")
-                    if is_forced:
-                        forced_flag_txt = "forced."
-                    else:
-                        forced_flag_txt = ""
-                    track_name = track_props.get("track_name", "und")
-                    track_name = track_name.replace(r"/", "#")
-                    if track_name != "und" and not is_forced:
-                        if "signs" in track_name.lower():
-                            is_forced = True
-                            forced_flag_txt = "forced."
-                        elif "songs" in track_name.lower():
-                            is_forced = True
-                            forced_flag_txt = "forced."
-                        elif "forc" in track_name.lower():
-                            is_forced = True
-                            forced_flag_txt = "forced."
-                    track_lang_ietf = track_props.get("language_ietf", "und")
-                    track_lang = track_props.get("language", "und")
-                    if track_lang == "und":
-                        track_lang = self.guess_lang(track_name)
-                    if track_lang == "und" or not track_lang:
-                        track_lang = self.guess_lang_harder(video_path,
-                                                            track_id,
-                                                            sub_type_extention)
-                    if track_lang != "und" and track_name == "und":
-                        track_name = (f"{Language.get(track_lang).display_name()} # "
-                                      f"{Language.get(track_lang).display_name(track_lang)}")
-                    if track_lang != "und":
-                        if "fr" in track_lang:
-                            default = "default."
-                    if track_lang_ietf != 'und':
-                        track_lang = track_lang_ietf
-                    else:
-                        track_lang = standardize_tag(track_lang)
-                    track_info = {"track_id": track_id,
-                                  "sub_type_extention": sub_type_extention,
-                                  "track_name": track_name,
-                                  "forced_flag_txt": forced_flag_txt,
-                                  "track_lang": track_lang,
-                                  "default": default}
-                    self.__subs.append(track_info)
+                    self._analyze_sub_track(track, video_path)
+
+    def _analyze_sub_track(self, track: dict, video_path: str) -> None:
+        default = ""
+        track_props = track["properties"]
+        sub_type = track_props.get("codec_id")
+        sub_type_extention = self.extension(sub_type)
+        track_id = track["id"]
+        is_forced = track_props.get("forced_track", False)
+        if is_forced:
+            forced_flag_txt = "forced."
+        else:
+            forced_flag_txt = ""
+        track_name = track_props.get("track_name", "und")
+        track_name = track_name.replace(r"/", "#")
+        if track_name != "und" and not is_forced:
+            if "signs" in track_name.lower():
+                is_forced = True
+                forced_flag_txt = "forced."
+            elif "songs" in track_name.lower():
+                is_forced = True
+                forced_flag_txt = "forced."
+            elif "forc" in track_name.lower():
+                is_forced = True
+                forced_flag_txt = "forced."
+        track_lang_ietf = track_props.get("language_ietf", "und")
+        track_lang = track_props.get("language", "und")
+        if track_lang == "und":
+            track_lang = self.guess_lang(track_name)
+        if track_lang == "und" or not track_lang:
+            track_lang = self.guess_lang_harder(video_path,
+                                                track_id,
+                                                sub_type_extention)
+        if track_lang != "und" and track_name == "und":
+            track_name = (f"{Language.get(track_lang).display_name()} # "
+                          f"{Language.get(track_lang).display_name(track_lang)}")
+        if track_lang != "und":
             if DEFAULT_LANG in track_lang:
                 default = "default."
+        if track_lang_ietf != 'und':
+            track_lang = track_lang_ietf
+        else:
+            track_lang = standardize_tag(track_lang)
+        track_info = {"track_id": track_id,
+                      "sub_type_extention": sub_type_extention,
+                      "track_name": track_name,
+                      "forced_flag_txt": forced_flag_txt,
+                      "track_lang": track_lang,
+                      "default": default}
+        self.__subs.append(track_info)
 
     def identify(self, video_file: str) -> bool:
         json_data = ""
@@ -283,15 +284,15 @@ class Subtitles(Tracks):
         file_name = path.basename(file_path)
         is_default = False
         is_forced = False
-        match_pattern = r'S(\d{2,3})\.E(\d{2,3})\.\[(.+)\]-\[(.+)\]\.(.+)\.(\w{3}$)'
-        # file_path = 'S01.E20.[Retr0]-[Signs#Songs [Commie]].default.eng.forced.ass'
-        re_match = re.search(string=file_name, pattern=match_pattern)
-        season = re_match.group(1)
-        episode = re_match.group(2)
-        rel_group = re_match.group(3)
-        trackname = re_match.group(4)
-        flags = re_match.group(5)
-        sub_extention = re_match.group(6)
+        rpattern = r'S(\d{2,3})\.E(\d{2,3})\.\[(.+)\]-\[(.+)\]\.(.+)\.(\w{3}$)'
+        # 'S01.E20.[Retr0]-[Signs#Songs [Commie]].default.eng.forced.ass'
+        re_match = re.search(string=file_name, pattern=rpattern)
+        season = re_match.group(1)  # pyright: ignore
+        episode = re_match.group(2)  # pyright: ignore
+        rel_group = re_match.group(3)  # pyright: ignore
+        trackname = re_match.group(4)  # pyright: ignore
+        flags = re_match.group(5)  # pyright: ignore
+        sub_extention = re_match.group(6)  # pyright: ignore
         if 'default' in flags:
             is_default = True
             flags = flags.replace('default.', '')
