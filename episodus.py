@@ -127,29 +127,22 @@ class Tracks():
 
     def _analyze_sub_track(self, track: dict, video_path: str) -> None:
         default = ""
+        forced = ""
         track_props = track["properties"]
         sub_type = track_props.get("codec_id")
         sub_type_extention = self.extension(sub_type)
         track_id = track["id"]
-        is_forced = track_props.get("forced_track", False)
-        if is_forced:
-            forced_flag_txt = "forced."
-        else:
-            forced_flag_txt = ""
         track_name = track_props.get("track_name", "und")
         track_name = track_name.replace(r"/", "#")
+        is_forced = track_props.get("forced_track", False)
+        forced = "forced." if is_forced else ""
         if track_name != "und" and not is_forced:
-            if "signs" in track_name.lower():
-                is_forced = True
-                forced_flag_txt = "forced."
-            elif "songs" in track_name.lower():
-                is_forced = True
-                forced_flag_txt = "forced."
-            elif "forc" in track_name.lower():
-                is_forced = True
-                forced_flag_txt = "forced."
+            forced = self._check_forced(track_name)
         track_lang_ietf = track_props.get("language_ietf", "und")
-        track_lang = track_props.get("language", "und")
+        if track_lang_ietf != "und":
+            track_lang = track_lang_ietf
+        else:
+            track_lang = track_props.get("language", "und")
         if track_lang == "und":
             track_lang = self.guess_lang(track_name)
         if track_lang == "und" or not track_lang:
@@ -162,17 +155,23 @@ class Tracks():
         if track_lang != "und":
             if DEFAULT_LANG in track_lang:
                 default = "default."
-        if track_lang_ietf != 'und':
-            track_lang = track_lang_ietf
-        else:
-            track_lang = standardize_tag(track_lang)
+        track_lang = standardize_tag(track_lang)
         track_info = {"track_id": track_id,
                       "sub_type_extention": sub_type_extention,
                       "track_name": track_name,
-                      "forced_flag_txt": forced_flag_txt,
+                      "forced_flag_txt": forced,
                       "track_lang": track_lang,
                       "default": default}
         self.__subs.append(track_info)
+
+    def _check_forced(self, track_name: str) -> str:
+        keywords = ["signs", "songs", "forc"]
+        track_name_lower = track_name.lower()
+        forced_flag_txt = (
+            "forced." if any(
+                keyword in track_name_lower for keyword in keywords) else ""
+        )
+        return forced_flag_txt
 
     def identify(self, video_file: str) -> bool:
         json_data = ""
