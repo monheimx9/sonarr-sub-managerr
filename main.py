@@ -21,13 +21,6 @@ SUBTITLE_PATH = configus.CONF_SUBTITLE_PATH
 PROGRESS_FOLDER = configus.CONF_PROGRESS_FOLDER
 
 
-def episode_num_from_path(path: str) -> int:
-    pattern = r'S\d{2}E(\d{2})'
-    re_match = re.search(pattern, path)
-    episode_num = int(re_match.group(1))  # pyright: ignore
-    return episode_num
-
-
 def export_all_from_sonarr():
     sonarr = Sonarr()
     all_series = sonarr.series
@@ -38,11 +31,16 @@ def export_all_from_sonarr():
         already_done = read_progress_sonarr()
         if str(serie_id) not in already_done:
             for episode in ep_list:
-                ep_path = episode.get("path")
-                season_num = f"{episode.get('seasonNumber'):02d}"
-                release = episode.get('releaseGroup')
-                ep_num = f"{episode_num_from_path(ep_path):02d}"
-                export_ep(ep_path, serie_tvid, ep_num, season_num, release)
+                monitored = episode.get("monitored")
+                if monitored:
+                    ep_id = episode.get("id")
+                    episodeInfo = sonarr.episode(ep_id)
+                    epFile = episodeInfo["episodeFile"]
+                    ep_path = epFile.get("path")
+                    season_num = f"{episodeInfo.get('seasonNumber'):02d}"
+                    release = epFile.get('releaseGroup')
+                    ep_num = f"{episodeInfo.get('episodeNumber'):02d}"
+                    export_ep(ep_path, serie_tvid, ep_num, season_num, release)
         save_progress_sonarr(serie_id)
 
 
@@ -95,11 +93,15 @@ def get_sonarr_var(data_file_path):
 def treat_queue_from_sonarr(source_folder) -> None:
     # Get a list of all files in the source folder
     ep = Episode()
+    sonarr = Sonarr()
     files = os.listdir(source_folder)
     for file in files:
         file_path_full = os.path.join(source_folder, file)
         ep.sonarr_var = get_sonarr_var(file_path_full)
-        export_ep(ep.video_path, ep.tvdbid, ep.number, ep.season, ep.release)
+        monitored = sonarr.is_monitored(ep.ep_id)
+        if monitored:
+            export_ep(ep.video_path, ep.tvdbid,
+                      ep.number, ep.season, ep.release)
         os.remove(file_path_full)
 
 

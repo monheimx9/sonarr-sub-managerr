@@ -18,6 +18,8 @@ DEFAULT_LANG = configus.CONF_DEFAULT_LANG
 
 class Episode():
     def __init__(self):
+        self._serie_id = ""
+        self._ep_id = ""
         self._number = ""
         self._season = ""
         self._video_path = ""
@@ -27,6 +29,14 @@ class Episode():
         self.tvdbid = ""
         self._copy_temp_path = ""
         self._temp_folder = TEMP_FOLDER
+
+    @property
+    def serie_id(self):
+        return self._serie_id
+
+    @property
+    def ep_id(self):
+        return self._ep_id
 
     @property
     def temp_path(self) -> str:
@@ -79,6 +89,8 @@ class Episode():
         self.season = value.get("sonarr_episodefile_seasonnumber")
         self.serie_path = value.get("sonarr_series_path")
         self.release = value.get("sonarr_episodefile_releasegroup")
+        self._serie_id = value.get("sonarr_series_id")
+        self._ep_id = value.get("sonarr_episodefile_episodeids")
 
     def copy_temp(self) -> str:
         path = shutil.copy(self._video_path, self._temp_folder)
@@ -254,10 +266,21 @@ class Sonarr():
         self._series = series
         return self._series
 
-    def episode_list(self, serie_id):
-        ep_list = self._sonarr.get_episode_file(serie_id, series=True)
+    def episode_list(self, serie_id: int | str) -> list:
+        ep_list = self._sonarr.get_episode(serie_id, series=True)
         self._episode_list = ep_list
         return self._episode_list
+
+    def episode(self, ep_id: int | str) -> dict:
+        ep_id = int(ep_id)
+        ep = self._sonarr.get_episode(ep_id, series=False)
+        return ep
+
+    def is_monitored(self, ep_id: int | str) -> bool:
+        ep_id = int(ep_id)
+        ep = self._sonarr.get_episode(ep_id, series=False)
+        print('test')
+        return ep.get("monitored", True)
 
 
 class Subtitles(Tracks):
