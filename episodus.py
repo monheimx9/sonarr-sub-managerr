@@ -149,7 +149,7 @@ class Tracks():
         is_forced = track_props.get("forced_track", False)
         forced = "forced." if is_forced else ""
         if track_name != "und" and not is_forced:
-            forced = self._check_forced(track_name)
+            forced, is_forced = self._check_forced(track_name)
         track_lang_ietf = track_props.get("language_ietf", "und")
         if track_lang_ietf != "und":
             track_lang = track_lang_ietf
@@ -176,14 +176,14 @@ class Tracks():
                       "default": default}
         self.__subs.append(track_info)
 
-    def _check_forced(self, track_name: str) -> str:
+    def _check_forced(self, track_name: str) -> tuple[str, bool]:
         keywords = ["signs", "songs", "forc"]
         track_name_lower = track_name.lower()
-        forced_flag_txt = (
+        forced = (
             "forced." if any(
                 keyword in track_name_lower for keyword in keywords) else ""
         )
-        return forced_flag_txt
+        return forced, True if forced == 'forced.' else False
 
     def identify(self, video_file: str) -> bool:
         json_data = ""
