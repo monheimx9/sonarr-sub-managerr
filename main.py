@@ -20,6 +20,8 @@ GRABING_FOLDER = configus.CONF_GRABING_FOLDER
 SUBTITLE_PATH = configus.CONF_SUBTITLE_PATH
 PROGRESS_FOLDER = configus.CONF_PROGRESS_FOLDER
 
+to_remux = False
+
 
 def export_all_from_sonarr():
     sonarr = Sonarr()
@@ -35,13 +37,14 @@ def export_all_from_sonarr():
                 if monitored:
                     ep_id = episode.get("id")
                     episodeInfo = sonarr.episode(ep_id)
-                    epFile = episodeInfo["episodeFile"]
-                    ep_path = epFile.get("path")
-                    season_num = f"{episodeInfo.get('seasonNumber'):02d}"
-                    release = epFile.get('releaseGroup')
-                    ep_num = f"{episodeInfo.get('episodeNumber'):02d}"
-                    export_ep(ep_path, serie_tvid, ep_num, season_num, release)
                     if 'episodeFile' in episodeInfo:
+                        epFile = episodeInfo["episodeFile"]
+                        ep_path = epFile.get("path")
+                        season_num = f"{episodeInfo.get('seasonNumber'):02d}"
+                        release = epFile.get('releaseGroup')
+                        ep_num = f"{episodeInfo.get('episodeNumber'):02d}"
+                        export_ep(ep_path, serie_tvid,
+                                  ep_num, season_num, release)
         save_progress_sonarr(serie_id)
 
 
@@ -50,8 +53,12 @@ def export_ep(ep_path: str,
               ep_num: str,
               season: str,
               rel_group: str) -> None:
+    global to_remux
     tracks = Tracks()
+    subs = Subtitles()
     ep = Episode()
+    subs_folder = f"{SUBTITLE_PATH}{tvid}/S{season}/E{ep_num}/"
+    subs.analyze_folder(subs_folder)
     ep.video_path = ep_path
     if tracks.identify(ep_path):
         tracks.analyze()
@@ -60,23 +67,21 @@ def export_ep(ep_path: str,
         else:
             video_path = ep.video_path
         for track in tracks.subs:
-            sub_path_full = (f"{SUBTITLE_PATH}"
-                             f"{tvid}/S{season}/E{ep_num}/"
+            sub_path_full = (f"{subs_folder}"
                              f"S{season}.E{ep_num}."
                              f"[{rel_group}]-[{track.get('track_name')}]."
                              f"{track.get('default')}"
                              f"{track.get('track_lang')}."
                              f"{track.get('forced_flag_txt')}"
                              f"{track.get('sub_type_extention')}")
-            subs = Subtitles()
-            subs.analyze_folder(os.path.dirname(sub_path_full))
-            # compare external subs to new video
-            # if lang exist in new video flag as no merge
             tracks.export(video_path, track.get("track_id"), sub_path_full)
             # if not args.all or args.reset, only on standard queue
             # eport temp subtitle track for syncronization with ffsubsync
             # remux prev external subs with new video and try to sync new subs
         ep.delete_temp()
+        if to_remux:
+            subs.compare_with_mkv(tracks.subs)
+            print('Remuxing old sub tracks with new video file')
 
 
 def get_sonarr_var(data_file_path):
@@ -138,19 +143,26 @@ def reset_progress_sonarr() -> None:
 
 
 def main():
+    global to_remux
     arg = argparse.ArgumentParser(
         description='Sonarr Subtitle (Auto)Managerr')
     arg.add_argument('-a', '--all', action='store_true',
                      help='Export all episode from Sonarr')
-    arg.add_argument(
-        '-r', '--reset', action='store_true', help='Reset from the benginginn')
+    arg.add_argument('-r', '--reset', action='store_true',
+                     help='Reset from the benginginn')
     arg.add_argument('-g', '--grabs', action='store_true',
                      help='Treat queue from the grabing folder')
+    arg.add_argument('-m', '--remux', action='store_true',
+                     help='Remux external tracks to new video file')
     args = arg.parse_args()
+    if args.remux:
+        to_remux = True
     if args.reset:
+        to_remux = False
         reset_progress_sonarr()
         export_all_from_sonarr()
     if args.all and not args.reset:
+        to_remux = False
         export_all_from_sonarr()
     if args.grabs:
         treat_queue_from_sonarr(GRABING_FOLDER)

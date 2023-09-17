@@ -261,7 +261,7 @@ class Sonarr():
     # tvdbid, seasonnumber, episodenumber, releasegroup
 
     @property
-    def series(self):
+    def series(self) -> list:
         series = self._sonarr.get_series()
         self._series = series
         return self._series
@@ -279,7 +279,6 @@ class Sonarr():
     def is_monitored(self, ep_id: int | str) -> bool:
         ep_id = int(ep_id)
         ep = self._sonarr.get_episode(ep_id, series=False)
-        print('test')
         return ep.get("monitored", True)
 
 
@@ -290,6 +289,20 @@ class Subtitles(Tracks):
     @property
     def subs_list(self):
         return self.__subs_list
+
+    def compare_with_mkv(self, mkv_tracks: list) -> list:
+        sub_tracks = self.__subs_list
+        if len(sub_tracks) > 0:
+            for sub_track in sub_tracks:
+                lang = sub_track.get("language_ietf")[:2]
+                for mkv_track in mkv_tracks:
+                    mkv_lang = mkv_track.get("track_lang")[:2]
+                    if lang in mkv_lang:
+                        sub_track["remux_ok"] = True
+                    else:
+                        sub_track["remux_ok"] = False
+        self.__subs_list = sub_tracks
+        return sub_tracks
 
     def analyze_folder(self, folder_path: str) -> list:
         if isdir(folder_path):
@@ -331,5 +344,6 @@ class Subtitles(Tracks):
                'episode': episode,
                'trackname': f'[{rel_group}]-[{trackname}]',
                'subtype': sub_extention,
-               'language_ietf': lang_}
+               'language_ietf': lang_,
+               'file_path': file_path}
         return sub
