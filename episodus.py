@@ -298,9 +298,10 @@ class Subtitles(Tracks):
                 for mkv_track in mkv_tracks:
                     mkv_lang = mkv_track.get("track_lang")[:2]
                     if lang in mkv_lang:
-                        sub_track["remux_ok"] = True
-                    else:
                         sub_track["remux_ok"] = False
+                        break
+                    else:
+                        sub_track["remux_ok"] = True
         self.__subs_list = sub_tracks
         return sub_tracks
 
