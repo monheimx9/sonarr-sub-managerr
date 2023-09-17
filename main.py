@@ -41,6 +41,7 @@ def export_all_from_sonarr():
                     release = epFile.get('releaseGroup')
                     ep_num = f"{episodeInfo.get('episodeNumber'):02d}"
                     export_ep(ep_path, serie_tvid, ep_num, season_num, release)
+                    if 'episodeFile' in episodeInfo:
         save_progress_sonarr(serie_id)
 
 
