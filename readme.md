@@ -2,7 +2,11 @@
 
 **A simple subtitles (automatic)manager for Sonarr written in python**
 
-Work in progress
+- Work in progress
+- The code is quite ugly because this is my *I'm learning Python* project
+- Feel free to participate in the project if you feel so
+- I'm not really that comfortable with github either so expect some weird commits and no proper release tag at this moment
+- There might be a Docker version in the future
 
 ## Goal
 The goal is to mostly automate the extraction and remuxing of subtitles when you upgrade episodes from a serie
@@ -26,7 +30,7 @@ Then python read from those text files and delete them after the operation is co
 
 From Sonarr, go to Settings->Connect->Add new
 
-Select *On Import*  and * On Upgrade* and add the path to the shell script
+Select *On Import*  and *On Upgrade* and add the path to the shell script
 
 
 
