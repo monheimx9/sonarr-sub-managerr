@@ -45,3 +45,7 @@ Select *On Import*  and *On Upgrade* and add the path to the shell script
 - [ ] Re-sync subtitles with [ffsubsync](https://github.com/smacke/ffsubsync)
 - [ ] Parse subtitles files to guess language
 
+## Knows issues
+Sometimes it happen that you might have one video file that covers multiple episodes (like a Kai version or a special release)
+In those edge cases I suggest to unmonitore the episodes in question before launching the program, I didn't dig enough for the moment to cover this use case
+
