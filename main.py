@@ -21,10 +21,12 @@ SUBTITLE_PATH = configus.CONF_SUBTITLE_PATH
 PROGRESS_FOLDER = configus.CONF_PROGRESS_FOLDER
 
 to_remux = False
+export_external_tracks = False
 
 
 def export_all_from_sonarr():
-    sonarr = Sonarr()
+    global export_external_tracks
+    sonarr = Sonarr(export_external_tracks)
     all_series = sonarr.series
     for serie in all_series:
         serie_id = serie.get("id")
@@ -81,6 +83,7 @@ def export_ep(ep_path: str,
         ep.delete_temp()
         if to_remux:
             subs.compare_with_mkv(tracks.subs)
+            test = subs.subs_list
             print('Remuxing old sub tracks with new video file')
 
 
@@ -144,6 +147,7 @@ def reset_progress_sonarr() -> None:
 
 def main():
     global to_remux
+    global export_external_tracks
     arg = argparse.ArgumentParser(
         description='Sonarr Subtitle (Auto)Managerr')
     arg.add_argument('-a', '--all', action='store_true',
@@ -154,7 +158,11 @@ def main():
                      help='Treat queue from the grabing folder')
     arg.add_argument('-m', '--remux', action='store_true',
                      help='Remux external tracks to new video file')
+    arg.add_argument('-x', '--external', action='store_true',
+                     help='Export external tracks from season folder')
     args = arg.parse_args()
+    if args.external:
+        export_external_tracks = True
     if args.remux:
         to_remux = True
     if args.reset:

@@ -14,6 +14,11 @@ SONARR_HOST_URL = configus.CONF_SONARR_HOST_URL
 SONARR_API = configus.CONF_SONARR_API
 TEMP_FOLDER = configus.CONF_TEMP_FOLDER
 DEFAULT_LANG = configus.CONF_DEFAULT_LANG
+SUBTITLE_PATH = configus.CONF_SUBTITLE_PATH
+
+
+def analyze_external_subs(sublist: list) -> list:
+    return []
 
 
 class Episode():
@@ -252,11 +257,13 @@ class Tracks():
 
 
 class Sonarr():
-    def __init__(self) -> None:
+    def __init__(self, export_external_tracks=False) -> None:
         self._sonarr = SonarrAPI(SONARR_HOST_URL, SONARR_API)
         self._series = []
         self._episode_list = []
+        self._episode = {}
         self._episode_path = []
+        self._bool_export_ext_tracks = export_external_tracks
 
     # tvdbid, seasonnumber, episodenumber, releasegroup
 
@@ -274,12 +281,32 @@ class Sonarr():
     def episode(self, ep_id: int | str) -> dict:
         ep_id = int(ep_id)
         ep = self._sonarr.get_episode(ep_id, series=False)
+        self._episode = ep
+        if self._bool_export_ext_tracks:
+            self._export_ext_tracks
         return ep
 
     def is_monitored(self, ep_id: int | str) -> bool:
         ep_id = int(ep_id)
         ep = self._sonarr.get_episode(ep_id, series=False)
         return ep.get("monitored", True)
+
+    def _export_ext_tracks(self) -> None:
+        ep = self._episode
+        if 'episodeFile' in ep:
+            ep_path = ep['episodeFile'].get('path')
+            track_list = self._list_ext_tracks(ep_path)
+
+    def _list_ext_tracks(self, ep_path: str) -> list:
+        track_keywords = ['ass', 'srt', 'ssa', 'sub', 'sup']
+        basedir = os.path.dirname(ep_path)
+        filename = os.path.basename(ep_path)
+        filename = os.path.splitext(filename)[0]
+        all_files = os.listdir(basedir)
+        matching = [track for track in all_files
+                    if track.startswith(filename)
+                    and track.endswith(tuple(track_keywords))]
+        return matching
 
 
 class Subtitles(Tracks):
