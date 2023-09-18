@@ -4,6 +4,15 @@
 
 Work in progress
 
+## Goal
+The goal is to mostly automate the extraction and remuxing of subtitles when you upgrade episodes from a serie
+
+The idea is to export every subtitle tracks after the *on import* or *on upgrade* events from Sonarr
+
+While also having the ability to fully export your entire collection
+
+The subtitles will be saved using that nomenclature /subtitles/*tvdbid*/SEASON/EPISODE/SXX.EXX.[Release-Group]-[Trackname].default-flag.track-lang.forced-flag.extention
+
 ## Features
 - [x] Treat queue from Sonarr grab folder ./grabs/ -g (--grab)
 - [ ] Switch to verbose mode -v (--verbose)
