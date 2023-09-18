@@ -12,5 +12,6 @@ Work in progress
 - [ ] Having a prompt and input to ask for user guidance on certain events
 - [ ] Choose between only export or remux with new upgraded episode -m (--re*m*ux)
 - [ ] Export external tracks already present in the season folder -x (--e*x*ternal)
+- [ ] Re-sync subtitles with [ffsubsync](https://github.com/smacke/ffsubsync)
 
 
