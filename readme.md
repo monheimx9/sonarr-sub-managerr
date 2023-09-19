@@ -17,7 +17,9 @@ While also having the ability to fully export your entire collection
 
 The subtitles will be saved using that nomenclature 
 
-/subtitles/*tvdbid*/SEASON/EPISODE/SXX.EXX.[Release-Group]-[Trackname].default-flag.track-lang.forced-flag.extention
+/subtitles/**tvdbid**/SXX/EXX/SXX.EXX.[Release-Group]-[Trackname].default-flag.track-lang.forced-flag.extention
+
+I choosed to export with the TvDbID as folder name rather than the SonarrID to avoid conflicts
 
 I also want the script to parse subtitle files (*ass, ssa, srt*) to guess their language if there's no metadata available from the container
 
@@ -32,20 +34,27 @@ From Sonarr, go to Settings->Connect->Add new
 
 Select *On Import*  and *On Upgrade* and add the path to the shell script
 
+In order to use the function **export all** from Sonarr, you need to configure Sonarr's host ip address as well as the API key in [configus.py](https://github.com/monheimx9/sonarr-sub-managerr/blob/main/configus.py)
 
+By default **unmonitored** episodes aren't treated, not in full export, nor when the queue is treated
 
 ## Features
-- [x] Treat queue from Sonarr grab folder ./grabs/ -g (--grab)
-- [ ] Switch to verbose mode -v (--verbose)
-- [x] Export the entire Sonarr collection -a (--all) (Start from the last exported serie)
-- [x] Reset export from the Start -r (--reset)
+- [x] Treat queue from Sonarr grab folder ./grabs/ -g (--**g**rab)
+- [ ] Switch to verbose mode -v (--**v**erbose)
+- [x] Export the entire Sonarr collection -a (--**a**ll) (Start from the last exported serie)
+- [x] Reset export from the Start -r (--**r**eset)
 - [ ] Having a prompt and input to ask for user guidance on certain events
-- [ ] Choose between only export or remux with new upgraded episode -m (--re*m*ux)
-- [ ] Export external tracks already present in the season folder -x (--e*x*ternal)
+- [ ] Choose between only export or remux with new upgraded episode -m (--re**m**ux)
+- [ ] Export external tracks already present in the season folder -x (--e**x**ternal)
 - [ ] Re-sync subtitles with [ffsubsync](https://github.com/smacke/ffsubsync)
 - [ ] Parse subtitles files to guess language
 
 ## Knows issues
 Sometimes it happen that you might have one video file that covers multiple episodes (like a Kai version or a special release)
+
 In those edge cases I suggest to unmonitore the episodes in question before launching the program, I didn't dig enough for the moment to cover this use case
+
+
+At this day 09/19/2023, it has only been tested with Sonarr 3.0.10.1567
+I'm not planning to move to Sonarr 4 until a stable version is out
 
