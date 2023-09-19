@@ -21,6 +21,82 @@ def analyze_external_subs(sublist: list) -> list:
     return []
 
 
+def check_forced(track_name: str) -> tuple[str, bool]:
+    keywords = ["signs", "songs", "forc"]
+    track_name_lower = track_name.lower()
+    forced = (
+        "forced." if any(
+            keyword in track_name_lower for keyword in keywords) else ""
+    )
+    return forced, True if forced == 'forced.' else False
+
+
+def extension(sub_type) -> str:
+    sub_extension = ""
+    if "PGS" in sub_type:
+        sub_extension = "sup"
+    elif "ASS" in sub_type:
+        sub_extension = "ass"
+    elif "SSA" in sub_type:
+        sub_extension = "ssa"
+    elif "UTF8" in sub_type or "ASCII" in sub_type:
+        sub_extension = "srt"
+    elif "VOBSUB" in sub_type:
+        sub_extension = "sub"
+    elif "USF" in sub_type:
+        sub_extension = "usf"
+    elif "WEBVTT" in sub_type:
+        sub_extension = "vtt"
+    return sub_extension
+
+
+def subtitle_info_from_file(file_path: str) -> dict:
+    base_dir = path.dirname(file_path)
+    file_name = path.basename(file_path)
+    is_default = False
+    is_forced = False
+    rpattern = r'S(\d{2,3})\.E(\d{2,3})\.\[(.+)\]-\[(.+)\]\.(.+)\.(\w{3}$)'
+    # 'S01.E20.[Retr0]-[Signs#Songs [Commie]].default.eng.forced.ass'
+    re_match = re.search(string=file_name, pattern=rpattern)
+    season = re_match.group(1)  # pyright: ignore
+    episode = re_match.group(2)  # pyright: ignore
+    rel_group = re_match.group(3)  # pyright: ignore
+    trackname = re_match.group(4)  # pyright: ignore
+    flags = re_match.group(5)  # pyright: ignore
+    sub_extention = re_match.group(6)  # pyright: ignore
+    if 'default' in flags:
+        is_default = True
+        flags = flags.replace('default.', '')
+    if 'forced' in flags:
+        is_forced = True
+        flags = flags.replace('forced', '')
+    flags = flags.replace('.', '')
+    lang_ = standardize_tag(flags)
+    sub = {'base_dir': base_dir,
+           'file_name': file_name,
+           'default_flag': is_default,
+           'forced_flag': is_forced,
+           'season': season,
+           'episode': episode,
+           'trackname': f'[{rel_group}]-[{trackname}]',
+           'subtype': sub_extention,
+           'language_ietf': lang_,
+           'file_path': file_path}
+    return sub
+
+
+def read_ass_sub():
+    pass
+
+
+def read_ssa_sub():
+    pass
+
+
+def read_srt_sub():
+    pass
+
+
 class Episode():
     def __init__(self):
         self._serie_id = ""
@@ -147,14 +223,14 @@ class Tracks():
         forced = ""
         track_props = track["properties"]
         sub_type = track_props.get("codec_id")
-        sub_type_extention = self.extension(sub_type)
+        sub_type_extention = extension(sub_type)
         track_id = track["id"]
         track_name = track_props.get("track_name", "und")
         track_name = track_name.replace(r"/", "#")
         is_forced = track_props.get("forced_track", False)
         forced = "forced." if is_forced else ""
         if track_name != "und" and not is_forced:
-            forced, is_forced = self._check_forced(track_name)
+            forced, is_forced = check_forced(track_name)
         track_lang_ietf = track_props.get("language_ietf", "und")
         if track_lang_ietf != "und":
             track_lang = track_lang_ietf
@@ -181,15 +257,6 @@ class Tracks():
                       "default": default}
         self.__subs.append(track_info)
 
-    def _check_forced(self, track_name: str) -> tuple[str, bool]:
-        keywords = ["signs", "songs", "forc"]
-        track_name_lower = track_name.lower()
-        forced = (
-            "forced." if any(
-                keyword in track_name_lower for keyword in keywords) else ""
-        )
-        return forced, True if forced == 'forced.' else False
-
     def identify(self, video_file: str) -> bool:
         json_data = ""
         cmd = [f"mkvmerge -i -J \"{video_file}\""]
@@ -206,24 +273,6 @@ class Tracks():
         do_something = track
         return do_something
 
-    def extension(self, sub_type) -> str:
-        sub_extension = ""
-        if "PGS" in sub_type:
-            sub_extension = "sup"
-        elif "ASS" in sub_type:
-            sub_extension = "ass"
-        elif "SSA" in sub_type:
-            sub_extension = "ssa"
-        elif "UTF8" in sub_type or "ASCII" in sub_type:
-            sub_extension = "srt"
-        elif "VOBSUB" in sub_type:
-            sub_extension = "sub"
-        elif "USF" in sub_type:
-            sub_extension = "usf"
-        elif "WEBVTT" in sub_type:
-            sub_extension = "vtt"
-        return sub_extension
-
     def guess_lang(self, track_name):
         try:
             track_lang = Language.find(track_name)
@@ -238,15 +287,6 @@ class Tracks():
             sub_path = self.export(video_file, track_id,
                                    "./caca" + sub_extention)
         return result
-
-    def read_ass_sub(self):
-        pass
-
-    def read_ssa_sub(self):
-        pass
-
-    def read_srt_sub(self):
-        pass
 
     def export(self, video_file: str, track_id: str | int, path: str) -> str:
         cmd = [
@@ -338,40 +378,6 @@ class Subtitles(Tracks):
             if len(all_subs) > 0:
                 for subtitle in all_subs:
                     full_path = path.join(folder_path, subtitle)
-                    subtitle_track = self.subtitle_info_from_file(full_path)
+                    subtitle_track = subtitle_info_from_file(full_path)
                     self.__subs_list.append(subtitle_track)
         return self.__subs_list
-
-    def subtitle_info_from_file(self, file_path: str) -> dict:
-        base_dir = path.dirname(file_path)
-        file_name = path.basename(file_path)
-        is_default = False
-        is_forced = False
-        rpattern = r'S(\d{2,3})\.E(\d{2,3})\.\[(.+)\]-\[(.+)\]\.(.+)\.(\w{3}$)'
-        # 'S01.E20.[Retr0]-[Signs#Songs [Commie]].default.eng.forced.ass'
-        re_match = re.search(string=file_name, pattern=rpattern)
-        season = re_match.group(1)  # pyright: ignore
-        episode = re_match.group(2)  # pyright: ignore
-        rel_group = re_match.group(3)  # pyright: ignore
-        trackname = re_match.group(4)  # pyright: ignore
-        flags = re_match.group(5)  # pyright: ignore
-        sub_extention = re_match.group(6)  # pyright: ignore
-        if 'default' in flags:
-            is_default = True
-            flags = flags.replace('default.', '')
-        if 'forced' in flags:
-            is_forced = True
-            flags = flags.replace('forced', '')
-        flags = flags.replace('.', '')
-        lang_ = standardize_tag(flags)
-        sub = {'base_dir': base_dir,
-               'file_name': file_name,
-               'default_flag': is_default,
-               'forced_flag': is_forced,
-               'season': season,
-               'episode': episode,
-               'trackname': f'[{rel_group}]-[{trackname}]',
-               'subtype': sub_extention,
-               'language_ietf': lang_,
-               'file_path': file_path}
-        return sub
