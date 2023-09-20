@@ -50,7 +50,19 @@ def extension(sub_type) -> str:
     return sub_extension
 
 
-def subtitle_info_from_file(file_path: str) -> dict:
+def list_ext_tracks(ep_path: str) -> list:
+    track_keywords = ['ass', 'srt', 'ssa', 'sub', 'sup']
+    basedir = os.path.dirname(ep_path)
+    filename = os.path.basename(ep_path)
+    filename = os.path.splitext(filename)[0]
+    all_files = os.listdir(basedir)
+    matching = [track for track in all_files
+                if track.startswith(filename)
+                and track.endswith(tuple(track_keywords))]
+    return matching
+
+
+def parse_subtitle_filename(file_path: str) -> dict:
     base_dir = path.dirname(file_path)
     file_name = path.basename(file_path)
     is_default = False
@@ -83,6 +95,19 @@ def subtitle_info_from_file(file_path: str) -> dict:
            'language_ietf': lang_,
            'file_path': file_path}
     return sub
+
+
+def build_subtitle_tags() -> dict:
+    pass
+
+
+def parse_external_trackname(file_path: str) -> dict:
+    rpattern = r''
+    return {}
+
+
+def get_subtitle_header(sub_path: str) -> dict:
+    pass
 
 
 def read_ass_sub():
@@ -335,18 +360,7 @@ class Sonarr():
         ep = self._episode
         if 'episodeFile' in ep:
             ep_path = ep['episodeFile'].get('path')
-            track_list = self._list_ext_tracks(ep_path)
-
-    def _list_ext_tracks(self, ep_path: str) -> list:
-        track_keywords = ['ass', 'srt', 'ssa', 'sub', 'sup']
-        basedir = os.path.dirname(ep_path)
-        filename = os.path.basename(ep_path)
-        filename = os.path.splitext(filename)[0]
-        all_files = os.listdir(basedir)
-        matching = [track for track in all_files
-                    if track.startswith(filename)
-                    and track.endswith(tuple(track_keywords))]
-        return matching
+            track_list = list_ext_tracks(ep_path)
 
 
 class Subtitles(Tracks):
@@ -377,7 +391,7 @@ class Subtitles(Tracks):
             all_subs = os.listdir(folder_path)
             if len(all_subs) > 0:
                 for subtitle in all_subs:
-                    full_path = path.join(folder_path, subtitle)
-                    subtitle_track = subtitle_info_from_file(full_path)
+                    f_path = path.join(folder_path, subtitle)
+                    subtitle_track = parse_subtitle_filename(f_path)
                     self.__subs_list.append(subtitle_track)
         return self.__subs_list
