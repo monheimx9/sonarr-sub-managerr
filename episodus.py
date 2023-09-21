@@ -107,11 +107,15 @@ def build_subtitle_tags(ep_path: str, sub_list: list[str]) -> dict:
     basedir = os.path.dirname(ep_path)
     for sub in sub_list:
         fullpath = os.path.join(basedir, sub)
-        header = get_subtitle_header(fullpath)
+        if sub.endswith('ass'):
+            header = get_subtitle_header(fullpath)
+            print(header)
+    return {}
 
 
 def get_subtitle_header(sub_path: str) -> dict:
-    sub = read_ass(get_subtitle_file_content(sub_path))
+    content = get_subtitle_file_content(sub_path)
+    sub = read_ass(content)
     return dict(sub.script_info)
 
 
@@ -363,7 +367,7 @@ class Sonarr():
         ep = self._sonarr.get_episode(ep_id, series=False)
         self._episode = ep
         if self._bool_export_ext_tracks:
-            self._export_ext_tracks
+            self._export_ext_tracks()
         return ep
 
     def is_monitored(self, ep_id: int | str) -> bool:
@@ -376,6 +380,8 @@ class Sonarr():
         if 'episodeFile' in ep:
             ep_path = ep['episodeFile'].get('path')
             track_list = list_ext_tracks(ep_path)
+            if len(track_list) > 0:
+                build_subtitle_tags(ep_path, track_list)
 
 
 class Subtitles(Tracks):
