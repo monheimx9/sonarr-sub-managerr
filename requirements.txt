@@ -1,4 +1,5 @@
 ass==0.5.4
+ass-parser==1.0
 ass-tag-parser==2.4.1
 certifi==2023.7.22
 charset-normalizer==3.2.0
