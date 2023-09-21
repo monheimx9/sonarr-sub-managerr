@@ -5,6 +5,7 @@ import shutil
 from langcodes import Language
 from langcodes import standardize_tag
 from pyarr import SonarrAPI
+from ass_parser import read_ass
 import json
 import os
 import subprocess
@@ -97,17 +98,25 @@ def parse_subtitle_filename(file_path: str) -> dict:
     return sub
 
 
-def build_subtitle_tags() -> dict:
-    pass
-
-
 def parse_external_trackname(file_path: str) -> dict:
     rpattern = r''
     return {}
 
 
+def build_subtitle_tags(ep_path: str, sub_list: list[str]) -> dict:
+    basedir = os.path.dirname(ep_path)
+    for sub in sub_list:
+        fullpath = os.path.join(basedir, sub)
+        header = get_subtitle_header(fullpath)
+
+
 def get_subtitle_header(sub_path: str) -> dict:
-    pass
+    sub = read_ass(get_subtitle_file_content(sub_path))
+    return dict(sub.script_info)
+
+
+def get_subtitle_file_content(sub_path: str) -> str:
+    return read_sub_file(sub_path)
 
 
 def read_ass_sub():
@@ -120,6 +129,12 @@ def read_ssa_sub():
 
 def read_srt_sub():
     pass
+
+
+def read_sub_file(sub_path: str) -> str:
+    with open(sub_path, 'r') as file:
+        file_content = file.read()
+        return file_content
 
 
 class Episode():
