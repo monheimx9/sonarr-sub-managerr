@@ -1,5 +1,4 @@
 import os
-import re
 import argparse
 # import sys
 # import subprocess
@@ -68,15 +67,15 @@ def export_ep(ep_path: str,
             video_path = ep.copy_temp()
         else:
             video_path = ep.video_path
-        for track in tracks.subs:
+        for t in tracks.subs:
             sub_path_full = (f"{subs_folder}"
                              f"S{season}.E{ep_num}."
-                             f"[{rel_group}]-[{track.get('track_name')}]."
-                             f"{track.get('default')}"
-                             f"{track.get('track_lang')}."
-                             f"{track.get('forced_flag_txt')}"
-                             f"{track.get('sub_type_extention')}")
-            tracks.export(video_path, track.get("track_id"), sub_path_full)
+                             f"[{rel_group}]-[{t.trackname}]."
+                             f"{t.default}"
+                             f"{t.language_ietf}."
+                             f"{t.forced}"
+                             f"{t.subtype}")
+            tracks.export(video_path, str(t.trackId), sub_path_full)
             # if not args.all or args.reset, only on standard queue
             # eport temp subtitle track for syncronization with ffsubsync
             # remux prev external subs with new video and try to sync new subs

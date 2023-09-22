@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from typing import List, Optional
 from os.path import isdir
 from os import path
 import re
@@ -107,6 +109,11 @@ def build_subtitle_tags(ep_path: str, sub_list: list[str]) -> dict:
     basedir = os.path.dirname(ep_path)
     for sub in sub_list:
         fullpath = os.path.join(basedir, sub)
+        # also parse subtitle filename
+        # then ask for user input (id as key)
+        # user will be able to build tags from parsed subtitles
+        # and 'ass' header if it exists
+        # if nothing can be retrieved, user can write
         if sub.endswith('ass'):
             header = get_subtitle_header(fullpath)
             print(header)
@@ -233,6 +240,21 @@ class Episode():
                         os.remove(file_path)
 
 
+@dataclass
+class TrackInfo:
+    trackId: Optional[str | int] = None
+    basedir: Optional[str] = None
+    filename: Optional[str] = None
+    filepath: Optional[str] = None
+    default: Optional[str] = None
+    forced: Optional[str] = None
+    season: Optional[str] = None
+    episode: Optional[str] = None
+    trackname: Optional[str] = None
+    subtype: Optional[str] = None
+    language_ietf: Optional[str] = None
+
+
 class Tracks():
     def __init__(self):
         self._audio = []
@@ -241,7 +263,7 @@ class Tracks():
         self._video_path = ""
 
     @property
-    def subs(self) -> list:
+    def subs(self) -> List[TrackInfo]:
         return self.__subs
 
     @property
@@ -293,13 +315,14 @@ class Tracks():
             if DEFAULT_LANG in track_lang:
                 default = "default."
         track_lang = standardize_tag(track_lang)
-        track_info = {"track_id": track_id,
-                      "sub_type_extention": sub_type_extention,
-                      "track_name": track_name,
-                      "forced_flag_txt": forced,
-                      "track_lang": track_lang,
-                      "default": default}
-        self.__subs.append(track_info)
+        s = TrackInfo()
+        s.trackId = track_id
+        s.subtype = sub_type_extention
+        s.trackname = track_name
+        s.forced = forced
+        s.default = default
+        s.language_ietf = track_lang
+        self.__subs.append(s)
 
     def identify(self, video_file: str) -> bool:
         json_data = ""
@@ -384,7 +407,7 @@ class Sonarr():
                 build_subtitle_tags(ep_path, track_list)
 
 
-class Subtitles(Tracks):
+class Subtitles():
     def __init__(self) -> None:
         self.__subs_list = []
 
