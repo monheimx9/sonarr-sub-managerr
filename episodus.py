@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 from os.path import isdir
 from os import path
 import re
@@ -22,7 +22,7 @@ SUBTITLE_PATH = configus.CONF_SUBTITLE_PATH
 
 @dataclass
 class TrackInfo:
-    trackId: Optional[str | int] = None
+    trackId: Optional[str] = None
     basedir: Optional[str] = None
     filename: Optional[str] = None
     filepath: Optional[str] = None
@@ -267,7 +267,7 @@ class Tracks():
         self._video_path = ""
 
     @property
-    def subs(self) -> List[TrackInfo]:
+    def subs(self) -> list[TrackInfo]:
         return self.__subs
 
     @property
@@ -423,9 +423,9 @@ class Subtitles():
         sub_tracks = self.subs_list
         if len(sub_tracks) > 0:
             for sub_track in sub_tracks:
-                lang = sub_track.language_ietf[:2]
+                lang = str(sub_track.language_ietf)[:2]
                 for mkv_track in mkv_tracks:
-                    mkv_lang = mkv_track.language_ietf[:2]
+                    mkv_lang = str(mkv_track.language_ietf)[:2]
                     if lang in mkv_lang:
                         sub_track.to_remux = False
                         break
