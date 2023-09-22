@@ -20,6 +20,24 @@ DEFAULT_LANG = configus.CONF_DEFAULT_LANG
 SUBTITLE_PATH = configus.CONF_SUBTITLE_PATH
 
 
+@dataclass
+class TrackInfo:
+    trackId: Optional[str | int] = None
+    basedir: Optional[str] = None
+    filename: Optional[str] = None
+    filepath: Optional[str] = None
+    default: Optional[str] = None
+    is_default: Optional[bool] = False
+    forced: Optional[str] = None
+    is_forced: Optional[bool] = False
+    season: Optional[str] = None
+    episode: Optional[str] = None
+    trackname: Optional[str] = None
+    subtype: Optional[str] = None
+    language_ietf: Optional[str] = None
+    to_remux: Optional[bool] = None
+
+
 def analyze_external_subs(sublist: list) -> list:
     return []
 
@@ -65,7 +83,8 @@ def list_ext_tracks(ep_path: str) -> list:
     return matching
 
 
-def parse_subtitle_filename(file_path: str) -> dict:
+def parse_subtitle_filename(file_path: str) -> TrackInfo:
+    s = TrackInfo()
     base_dir = path.dirname(file_path)
     file_name = path.basename(file_path)
     is_default = False
@@ -87,17 +106,17 @@ def parse_subtitle_filename(file_path: str) -> dict:
         flags = flags.replace('forced', '')
     flags = flags.replace('.', '')
     lang_ = standardize_tag(flags)
-    sub = {'base_dir': base_dir,
-           'file_name': file_name,
-           'default_flag': is_default,
-           'forced_flag': is_forced,
-           'season': season,
-           'episode': episode,
-           'trackname': f'[{rel_group}]-[{trackname}]',
-           'subtype': sub_extention,
-           'language_ietf': lang_,
-           'file_path': file_path}
-    return sub
+    s.basedir = base_dir
+    s.filename = file_name
+    s.is_default = is_default
+    s.is_forced = is_forced
+    s.season = season
+    s.episode = episode
+    s.trackname = f'[´{rel_group}]-[{trackname}]'
+    s.subtype = sub_extention
+    s.language_ietf = lang_
+    s.filepath = file_path
+    return s
 
 
 def parse_external_trackname(file_path: str) -> dict:
@@ -238,21 +257,6 @@ class Episode():
                     file_path = os.path.join(temp_folder, file)
                     if os.path.isfile(file_path):
                         os.remove(file_path)
-
-
-@dataclass
-class TrackInfo:
-    trackId: Optional[str | int] = None
-    basedir: Optional[str] = None
-    filename: Optional[str] = None
-    filepath: Optional[str] = None
-    default: Optional[str] = None
-    forced: Optional[str] = None
-    season: Optional[str] = None
-    episode: Optional[str] = None
-    trackname: Optional[str] = None
-    subtype: Optional[str] = None
-    language_ietf: Optional[str] = None
 
 
 class Tracks():
@@ -412,25 +416,25 @@ class Subtitles():
         self.__subs_list = []
 
     @property
-    def subs_list(self):
+    def subs_list(self) -> list[TrackInfo]:
         return self.__subs_list
 
-    def compare_with_mkv(self, mkv_tracks: list) -> list:
-        sub_tracks = self.__subs_list
+    def compare_with_mkv(self, mkv_tracks: list[TrackInfo]) -> list[TrackInfo]:
+        sub_tracks = self.subs_list
         if len(sub_tracks) > 0:
             for sub_track in sub_tracks:
-                lang = sub_track.get("language_ietf")[:2]
+                lang = sub_track.language_ietf[:2]
                 for mkv_track in mkv_tracks:
-                    mkv_lang = mkv_track.get("track_lang")[:2]
+                    mkv_lang = mkv_track.language_ietf[:2]
                     if lang in mkv_lang:
-                        sub_track["remux_ok"] = False
+                        sub_track.to_remux = False
                         break
                     else:
-                        sub_track["remux_ok"] = True
+                        sub_track.to_remux = True
         self.__subs_list = sub_tracks
         return sub_tracks
 
-    def analyze_folder(self, folder_path: str) -> list:
+    def analyze_folder(self, folder_path: str) -> list[TrackInfo]:
         if isdir(folder_path):
             all_subs = os.listdir(folder_path)
             if len(all_subs) > 0:
@@ -438,4 +442,4 @@ class Subtitles():
                     f_path = path.join(folder_path, subtitle)
                     subtitle_track = parse_subtitle_filename(f_path)
                     self.__subs_list.append(subtitle_track)
-        return self.__subs_list
+        return self.subs_list
