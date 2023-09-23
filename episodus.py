@@ -112,7 +112,7 @@ def parse_subtitle_filename(file_path: str) -> TrackInfo:
     s.is_forced = is_forced
     s.season = season
     s.episode = episode
-    s.trackname = f'[´{rel_group}]-[{trackname}]'
+    s.trackname = f'[{rel_group}]-[{trackname}]'
     s.subtype = sub_extention
     s.language_ietf = lang_
     s.filepath = file_path
