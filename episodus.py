@@ -121,7 +121,7 @@ def parse_subtitle_filename(file_path: str) -> TrackInfo:
 
 def parse_external_trackname(ep_path: str, sub_path: str) -> dict:
     video_path = os.path.splitext(ep_path)
-    sub_path = sub_path.replace(video_path, '')
+    sub_path = sub_path.replace(ep_path, '')
 
     rpattern = r''
     return {}
