@@ -119,12 +119,19 @@ def parse_subtitle_filename(file_path: str) -> TrackInfo:
     return s
 
 
-def parse_external_trackname(file_path: str) -> dict:
+def parse_external_trackname(ep_path: str, sub_path: str) -> dict:
+    video_path = os.path.splitext(ep_path)
+    sub_path = sub_path.replace(video_path, '')
+
     rpattern = r''
     return {}
 
 
-def build_subtitle_tags(ep_path: str, sub_list: list[str]) -> dict:
+def ask_user_input():
+    pass
+
+
+def build_subtitle_tags(ep_path: str, sub_list: list[str]) -> list[TrackInfo]:
     basedir = os.path.dirname(ep_path)
     for sub in sub_list:
         fullpath = os.path.join(basedir, sub)
@@ -149,15 +156,15 @@ def get_subtitle_file_content(sub_path: str) -> str:
     return read_sub_file(sub_path)
 
 
-def read_ass_sub():
+def read_ass_dialogs():
     pass
 
 
-def read_ssa_sub():
+def read_ssa_dialogs():
     pass
 
 
-def read_srt_sub():
+def read_srt_dialogs():
     pass
 
 
@@ -408,7 +415,7 @@ class Sonarr():
             ep_path = ep['episodeFile'].get('path')
             track_list = list_ext_tracks(ep_path)
             if len(track_list) > 0:
-                build_subtitle_tags(ep_path, track_list)
+                subs = build_subtitle_tags(ep_path, track_list)
 
 
 class Subtitles():
