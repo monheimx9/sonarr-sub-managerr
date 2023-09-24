@@ -26,9 +26,7 @@ class TrackInfo:
     basedir: Optional[str] = None
     filename: Optional[str] = None
     filepath: Optional[str] = None
-    default: Optional[str] = None
     is_default: Optional[bool] = False
-    forced: Optional[str] = None
     is_forced: Optional[bool] = False
     season: Optional[str] = None
     episode: Optional[str] = None
@@ -37,19 +35,33 @@ class TrackInfo:
     language_ietf: Optional[str] = None
     to_remux: Optional[bool] = None
 
+    @property
+    def forced(self) -> Optional[str]:
+        if self.is_forced:
+            return 'forced.'
+        else:
+            return ''
+
+    @property
+    def default(self) -> Optional[str]:
+        if self.is_default:
+            return 'default.'
+        else:
+            return ''
+
 
 def analyze_external_subs(sublist: list) -> list:
     return []
 
 
-def check_forced(track_name: str) -> tuple[str, bool]:
+def check_forced(track_name: str) -> bool:
     keywords = ["signs", "songs", "forc"]
     track_name_lower = track_name.lower()
     forced = (
         "forced." if any(
             keyword in track_name_lower for keyword in keywords) else ""
     )
-    return forced, True if forced == 'forced.' else False
+    return True if forced == 'forced.' else False
 
 
 def extension(sub_type) -> str:
@@ -120,14 +132,17 @@ def parse_subtitle_filename(file_path: str) -> TrackInfo:
 
 
 def parse_external_trackname(ep_path: str, sub_path: str) -> dict:
-    video_path = os.path.splitext(ep_path)
-    sub_path = sub_path.replace(ep_path, '')
+    results = {}
+    ep_path = os.path.splitext(ep_path)[0]
+    flags = sub_path.replace(ep_path, '').split('.')
+    results['default'] = True if 'default' in flags else False
+    results['forced'] = True if 'forced' in flags else False
 
     rpattern = r''
     return {}
 
 
-def ask_user_input():
+def ask_user_input(header: dict, file_parsed: dict) -> TrackInfo:
     pass
 
 
@@ -296,8 +311,7 @@ class Tracks():
                     self._analyze_sub_track(track, video_path)
 
     def _analyze_sub_track(self, track: dict, video_path: str) -> None:
-        default = ""
-        forced = ""
+        s = TrackInfo()
         track_props = track["properties"]
         sub_type = track_props.get("codec_id")
         sub_type_extention = extension(sub_type)
@@ -305,9 +319,8 @@ class Tracks():
         track_name = track_props.get("track_name", "und")
         track_name = track_name.replace(r"/", "#")
         is_forced = track_props.get("forced_track", False)
-        forced = "forced." if is_forced else ""
         if track_name != "und" and not is_forced:
-            forced, is_forced = check_forced(track_name)
+            is_forced = check_forced(track_name)
         track_lang_ietf = track_props.get("language_ietf", "und")
         if track_lang_ietf != "und":
             track_lang = track_lang_ietf
@@ -324,14 +337,12 @@ class Tracks():
                           f"{Language.get(track_lang).display_name(track_lang)}")
         if track_lang != "und":
             if DEFAULT_LANG in track_lang:
-                default = "default."
+                s.is_default = True
         track_lang = standardize_tag(track_lang)
-        s = TrackInfo()
         s.trackId = track_id
         s.subtype = sub_type_extention
         s.trackname = track_name
-        s.forced = forced
-        s.default = default
+        s.is_forced = is_forced
         s.language_ietf = track_lang
         self.__subs.append(s)
 
