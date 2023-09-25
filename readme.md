@@ -23,6 +23,8 @@ The subtitles will be saved using that nomenclature
 
 */subtitles/305074/S03/E03/S03.E03.[Tsundere-raws]-[Sous-titres complets ADN].default.fr.ass*
 
+*/subtitles/375271/S01/E01/S01.E01.[EMBER]-[Signs & Songs@L.Y].en.forced.ass*
+
 I choose to export with the TvDbID as folder name rather than the SonarrID to avoid conflicts
 
 I also want the script to parse subtitle files (*ass, ssa, srt*) to guess their language if there's no metadata available from the container using language identification *langid*
