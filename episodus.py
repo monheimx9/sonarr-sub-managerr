@@ -52,10 +52,6 @@ class TrackInfo:
             return ''
 
 
-def analyze_external_subs(sublist: list) -> list:
-    return []
-
-
 def check_forced(track_name: str) -> bool:
     keywords = ["signs", "songs", "forc"]
     track_name_lower = track_name.lower()
@@ -135,8 +131,10 @@ def parse_subtitle_filename(file_path: str) -> TrackInfo:
 
 def parse_external_trackname(ep_path: str, sub_path: str) -> dict:
     results = {}
-    ep_path = os.path.splitext(ep_path)[0]
-    flags = sub_path.replace(ep_path, '').split('.')
+    filename = os.path.basename(ep_path)
+    filename = os.path.splitext(filename)[0]
+    sub_path = os.path.splitext(sub_path)[0]
+    flags = sub_path.replace(filename + '.', '').split('.')
     flags_copy = flags.copy()
     for flag in flags_copy:
         if 'default' == flag:
@@ -163,10 +161,13 @@ def parse_external_trackname(ep_path: str, sub_path: str) -> dict:
 
 
 def ask_user_input(header: dict, parsed_name: dict) -> TrackInfo:
-    pass
+    t = TrackInfo()
+
+    return t
 
 
 def build_subtitle_tags(ep_path: str, sub_list: list[str]) -> list[TrackInfo]:
+    sub_list_ok = []
     basedir = os.path.dirname(ep_path)
     for sub in sub_list:
         fullpath = os.path.join(basedir, sub)
@@ -177,8 +178,10 @@ def build_subtitle_tags(ep_path: str, sub_list: list[str]) -> list[TrackInfo]:
         # if nothing can be retrieved, user can write
         if sub.endswith('ass'):
             header = get_subtitle_header(fullpath)
-            print(header)
-    return {}
+            title_parsed = parse_external_trackname(ep_path, sub)
+            approuved_track = ask_user_input(header, title_parsed)
+            sub_list_ok.append(approuved_track)
+    return sub_list_ok
 
 
 def get_subtitle_header(sub_path: str) -> dict:
@@ -391,8 +394,9 @@ class Tracks():
             return False
 
     def guess_lang_harder(self, video_file, track_id, sub_extention):
+        text_subs = ['ass', 'ssa', 'srt']
         result = ""
-        if sub_extention:
+        if sub_extention in text_subs:
             sub_path = self.export(video_file, track_id,
                                    "./caca" + sub_extention)
         return result
