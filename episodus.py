@@ -6,6 +6,8 @@ import re
 import shutil
 from langcodes import Language
 from langcodes import standardize_tag
+import langcodes
+import py3langid as langid
 from pyarr import SonarrAPI
 from ass_parser import read_ass
 import json
@@ -135,14 +137,32 @@ def parse_external_trackname(ep_path: str, sub_path: str) -> dict:
     results = {}
     ep_path = os.path.splitext(ep_path)[0]
     flags = sub_path.replace(ep_path, '').split('.')
-    results['default'] = True if 'default' in flags else False
-    results['forced'] = True if 'forced' in flags else False
+    flags_copy = flags.copy()
+    for flag in flags_copy:
+        if 'default' == flag:
+            results['default'] = True
+            flags.remove(flag)
+        if 'forced' == flag:
+            results['forced'] = True
+            flags.remove(flag)
+        if 'hi' == flag:
+            results['cc'] = True
+            flags.remove(flag)
+        if 'cc' == flag:
+            results['cc'] = True
+            flags.remove(flag)
+        if 'sdh' == flag:
+            results['cc'] = True
+            flags.remove(flag)
+    if len(flags) == 2:
+        results['trackname'] = flags[0]
+        results['tracklang'] = langcodes.standardize_tag(flags[1])
+    if len(flags) == 1:
+        results['tracklang'] = langcodes.standardize_tag(flags[0])
+    return results
 
-    rpattern = r''
-    return {}
 
-
-def ask_user_input(header: dict, file_parsed: dict) -> TrackInfo:
+def ask_user_input(header: dict, parsed_name: dict) -> TrackInfo:
     pass
 
 
