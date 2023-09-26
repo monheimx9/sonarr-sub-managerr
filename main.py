@@ -141,7 +141,6 @@ def read_progress_sonarr() -> list:
 def reset_progress_sonarr() -> None:
     with open(PROGRESS_FOLDER, 'w') as file:
         file.flush()
-        pass
 
 
 def main():
@@ -165,11 +164,9 @@ def main():
     if args.remux:
         to_remux = True
     if args.reset:
-        to_remux = False
         reset_progress_sonarr()
         export_all_from_sonarr()
     if args.all and not args.reset:
-        to_remux = False
         export_all_from_sonarr()
     if args.grabs:
         treat_queue_from_sonarr(GRABING_FOLDER)
