@@ -52,6 +52,7 @@ By default **unmonitored** episodes aren't treated, not in full export, nor when
 - [x] Export the entire Sonarr collection -a (--**a**ll) (Start from the last exported serie)
 - [x] Reset export from the Start -r (--**r**eset)
 - [ ] Having a prompt and input to ask for user guidance on certain events
+- [ ] Correct mkv properties with mkvpropedit if language is undefined and can be identified
 - [ ] Choose between only export or remux with new upgraded episode -m (--re**m**ux)
 - [ ] Export external tracks already present in the season folder -x (--e**x**ternal)
 - [ ] Re-sync subtitles with [ffsubsync](https://github.com/smacke/ffsubsync)
