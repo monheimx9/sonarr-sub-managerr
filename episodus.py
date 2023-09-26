@@ -4,6 +4,7 @@ from os.path import isdir
 from os import path
 import re
 import shutil
+from pprint import pprint
 from langcodes import Language
 from langcodes import standardize_tag
 import langcodes
@@ -36,6 +37,14 @@ class TrackInfo:
     subtype: Optional[str] = None
     language_ietf: Optional[str] = None
     to_remux: Optional[bool] = None
+    is_sdh: Optional[bool] = None
+
+    @property
+    def sdh(self) -> Optional[str]:
+        if self.is_sdh:
+            return 'sdh.'
+        else:
+            return ''
 
     @property
     def forced(self) -> Optional[str]:
@@ -133,6 +142,7 @@ def parse_external_trackname(ep_path: str, sub_path: str) -> dict:
     results = {}
     filename = os.path.basename(ep_path)
     filename = os.path.splitext(filename)[0]
+    sub_path_copy = sub_path
     sub_path = os.path.splitext(sub_path)[0]
     flags = sub_path.replace(filename + '.', '').split('.')
     flags_copy = flags.copy()
@@ -157,11 +167,22 @@ def parse_external_trackname(ep_path: str, sub_path: str) -> dict:
         results['tracklang'] = langcodes.standardize_tag(flags[1])
     if len(flags) == 1:
         results['tracklang'] = langcodes.standardize_tag(flags[0])
+    results['filename'] = sub_path_copy
     return results
 
 
 def ask_user_input(header: dict, parsed_name: dict) -> TrackInfo:
     t = TrackInfo()
+    t.is_forced = parsed_name.get('forced', False)
+    t.is_default = parsed_name.get('default', False)
+    t.is_sdh = parsed_name.get('cc', False)
+    t.trackname = parsed_name.get('trackname', header.get('title', 'und'))
+    t.language_ietf = parsed_name.get('tracklang')
+    print(parsed_name.get('filename'))
+    pprint(dict(parsed_name))
+    pprint(dict(header))
+    print(f'Is trackname ok ? : {t.trackname}')
+    print(f'Is track lang ok ? : {t.language_ietf}')
 
     return t
 
@@ -177,9 +198,15 @@ def build_subtitle_tags(ep_path: str, sub_list: list[str]) -> list[TrackInfo]:
         # and 'ass' header if it exists
         # if nothing can be retrieved, user can write
         if sub.endswith('ass'):
-            header = get_subtitle_header(fullpath)
+            header = get_subtitle_header(fullpath, True)
             title_parsed = parse_external_trackname(ep_path, sub)
             approuved_track = ask_user_input(header, title_parsed)
+            approuved_track.filepath = os.path.join(basedir, sub)
+            sub_list_ok.append(approuved_track)
+        if sub.endswith('srt') or sub.endswith('ssa'):
+            title_parsed = parse_external_trackname(ep_path, sub)
+            approuved_track = ask_user_input({}, title_parsed)
+            approuved_track.filepath = os.path.join(basedir, sub)
             sub_list_ok.append(approuved_track)
     return sub_list_ok
 
@@ -222,6 +249,10 @@ def get_subtitle_header(sub_path: str, cleaning=False) -> dict:
 
 def get_subtitle_file_content(sub_path: str) -> str:
     return read_sub_file(sub_path)
+
+
+def identify_lang_from_dialog():
+    pass
 
 
 def read_ass_dialogs():
