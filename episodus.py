@@ -184,10 +184,40 @@ def build_subtitle_tags(ep_path: str, sub_list: list[str]) -> list[TrackInfo]:
     return sub_list_ok
 
 
-def get_subtitle_header(sub_path: str) -> dict:
+def clean_header(sub: dict) -> dict:
+    keys_to_clean = ['ScriptType',
+                     'WrapStyle',
+                     'PlayResX',
+                     'PlayResY',
+                     'ScaledBorderAndShadow',
+                     'YCbCr Matrix',
+                     'Last Style Storage',
+                     'Video Aspect Ratio',
+                     'Video Zoom',
+                     'Video Position',
+                     'Collisions',
+                     'Video File',
+                     'Aegisub Video Aspect Ratio',
+                     # 'Original Translation',
+                     # 'Original Editing',
+                     # 'Original Timing',
+                     'Synch Point',
+                     'Script Updated By',
+                     'Update Details',
+                     'Timer']
+    for k in keys_to_clean:
+        if k in sub:
+            del sub[k]
+    return sub
+
+
+def get_subtitle_header(sub_path: str, cleaning=False) -> dict:
     content = get_subtitle_file_content(sub_path)
     sub = read_ass(content)
-    return dict(sub.script_info)
+    sub = dict(sub.script_info)
+    if cleaning:
+        sub = clean_header(sub)
+    return sub
 
 
 def get_subtitle_file_content(sub_path: str) -> str:
