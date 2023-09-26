@@ -189,8 +189,8 @@ def option_selector(k_list: list[str], v_list: list[str], txt: str) -> str:
 
 
 def language_selector() -> str:
-    v_list = []
-    k_list = []
+    v_list = ['If you choose this option, you can input your own text']
+    k_list = ['Write your own']
     # Key and Value are reversed on purpose
     for value, key in LANGUAGE_TAGS.items():
         k_list.append(key)
