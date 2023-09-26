@@ -42,6 +42,8 @@ Select *On Import*  and *On Upgrade* and add the path to the shell script
 
 In order to use the function **export all** from Sonarr, you need to configure Sonarr's host ip address as well as the API key in [configus.py](https://github.com/monheimx9/sonarr-sub-managerr/blob/main/configus.py)
 
+You can also modify the language tags (IETF [BCP47](https://datatracker.ietf.org/doc/html/rfc5646)) in the config file
+
 Then start the script using the arguments bellow when there's at least one episode imported or upgraded
 
 By default **unmonitored** episodes aren't treated, not in full export, nor when the queue is treated

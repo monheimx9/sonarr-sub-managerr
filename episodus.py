@@ -4,7 +4,6 @@ from os.path import isdir
 from os import path
 import re
 import shutil
-from pprint import pprint
 from langcodes import Language
 from langcodes import standardize_tag
 import langcodes
@@ -21,6 +20,7 @@ SONARR_API = configus.CONF_SONARR_API
 TEMP_FOLDER = configus.CONF_TEMP_FOLDER
 DEFAULT_LANG = configus.CONF_DEFAULT_LANG
 SUBTITLE_PATH = configus.CONF_SUBTITLE_PATH
+LANGUAGE_TAGS = configus.COMMON_LANGUAGE_TAGS
 
 
 @dataclass
@@ -171,19 +171,79 @@ def parse_external_trackname(ep_path: str, sub_path: str) -> dict:
     return results
 
 
-def ask_user_input(header: dict, parsed_name: dict) -> TrackInfo:
-    t = TrackInfo()
-    t.is_forced = parsed_name.get('forced', False)
-    t.is_default = parsed_name.get('default', False)
-    t.is_sdh = parsed_name.get('cc', False)
-    t.trackname = parsed_name.get('trackname', header.get('title', 'und'))
-    t.language_ietf = parsed_name.get('tracklang')
-    print(parsed_name.get('filename'))
-    pprint(dict(parsed_name))
-    pprint(dict(header))
-    print(f'Is trackname ok ? : {t.trackname}')
-    print(f'Is track lang ok ? : {t.language_ietf}')
+def option_selector(k_list: list[str], v_list: list[str], txt: str) -> str:
+    result = ''
+    print('Choose between the following options')
+    for i, k in enumerate(k_list):
+        print(f'{i}. {k}: {v_list[i]}')
+    while True:
+        choice = int(input('Option N°: '))
+        if 0 <= choice <= len(k_list):
+            if choice == 0:
+                result = input(txt)
+                break
+            else:
+                result = v_list[choice]
+                break
+    return result
 
+
+def language_selector() -> str:
+    v_list = []
+    k_list = []
+    # Key and Value are reversed on purpose
+    for value, key in LANGUAGE_TAGS.items():
+        k_list.append(key)
+        v_list.append(value)
+    txt = 'BCP 47 tags are required: '
+    lang = option_selector(k_list, v_list, txt)
+    lang = standardize_tag(lang)
+    return lang
+
+
+def ask_user_input(header: dict, parsed_name: dict) -> TrackInfo:
+    key_list = ['Write your own']
+    val_list = ['If you choose this option, you can input your own text']
+    if not len(header) == 0:
+        for key, value in header.items():
+            key_list.append(key)
+            val_list.append(value)
+    for key, value in parsed_name.items():
+        key_list.append(key)
+        val_list.append(value)
+    t = TrackInfo()
+    print(parsed_name.get('filename'))
+    t.is_forced = parsed_name.get('forced', False)
+    print(f'Is "Forced track" correct ? Forced is {t.is_forced}')
+    choice = input(r'[Y/n] : ')
+    if choice.lower().startswith('n'):
+        t.is_forced = not t.is_forced
+        print(f'Forced track is now {t.is_forced}')
+    t.is_default = parsed_name.get('default', False)
+    print(f'Is "Default track" correct ? Default is {t.is_default}')
+    choice = input(r'[Y/n] : ')
+    if choice.lower().startswith('n'):
+        t.is_default = not t.is_default
+        print(f'Default track is now {t.is_default}')
+    t.is_sdh = parsed_name.get('cc', False)
+    print(f'Is "Hearing impaired track" correct ? CC is {t.is_sdh}')
+    choice = input(r'[Y/n] : ')
+    if choice.lower().startswith('n'):
+        t.is_sdh = not t.is_sdh
+        print(f'Hearing impaired track is now {t.is_sdh}')
+    t.trackname = parsed_name.get('trackname', header.get('title', 'und'))
+    print(f'Is Track Name correct ? Track Name is {t.trackname}')
+    choice = input(r'[Y/n] : ')
+    if choice.lower().startswith('n'):
+        txt = 'Write your own Track Name : '
+        t.trackname = option_selector(key_list, val_list, txt)
+        print(f'Track Name is now : {t.trackname}')
+    t.language_ietf = parsed_name.get('tracklang')
+    print(f'Is Track Language correct ? : Language is {t.language_ietf}')
+    choice = input(r'[Y/n] : ')
+    if choice.lower().startswith('n'):
+        t.language_ietf = language_selector()
+        print(f'Track Lang is now : {t.language_ietf}')
     return t
 
 
@@ -229,7 +289,7 @@ def clean_header(sub: dict) -> dict:
                      # 'Original Editing',
                      # 'Original Timing',
                      'Synch Point',
-                     'Script Updated By',
+                     # 'Script Updated By',
                      'Update Details',
                      'Timer']
     for k in keys_to_clean:
