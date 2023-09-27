@@ -10,6 +10,7 @@ import langcodes
 import py3langid as langid
 from pyarr import SonarrAPI
 from ass_parser import read_ass
+from ass_tag_parser import ass_to_plaintext
 import json
 import os
 import subprocess
@@ -252,14 +253,10 @@ def build_subtitle_tags(ep_path: str, sub_list: list[str]) -> list[TrackInfo]:
     basedir = os.path.dirname(ep_path)
     for sub in sub_list:
         fullpath = os.path.join(basedir, sub)
-        # also parse subtitle filename
-        # then ask for user input (id as key)
-        # user will be able to build tags from parsed subtitles
-        # and 'ass' header if it exists
-        # if nothing can be retrieved, user can write
         if sub.endswith('ass'):
             header = get_subtitle_header(fullpath, True)
             title_parsed = parse_external_trackname(ep_path, sub)
+            title_parsed['identified_lang'] = identify_lang_in_dialog(fullpath)
             approuved_track = ask_user_input(header, title_parsed)
             approuved_track.filepath = os.path.join(basedir, sub)
             sub_list_ok.append(approuved_track)
@@ -311,19 +308,41 @@ def get_subtitle_file_content(sub_path: str) -> str:
     return read_sub_file(sub_path)
 
 
-def identify_lang_from_dialog():
-    pass
+def identify_lang_in_dialog(sub_path: str) -> str:
+    content = get_subtitle_file_content(sub_path)
+    ext = str(os.path.splitext(sub_path)[1])
+    dialogs = ''
+    identify = ''
+    if ext.endswith('ass') or ext.endswith('ssa'):
+        dialogs = read_ass_dialogs(content)
+        identify = langid.classify(dialogs)[0]
+    elif ext.endswith('srt'):
+        dialogs = read_srt_dialogs(content)
+        identify = langid.classify(dialogs)[0]
+    else:
+        identify = 'undefiend'
+    return str(identify)
 
 
-def read_ass_dialogs():
-    pass
+def read_ass_dialogs(ass_events) -> str:
+    all_events = read_ass(ass_events).events
+    dialog_list = []
+    limit_line = 150
+    current_line = 0
+    for dialog_line in all_events:
+        dialog_list.append(dialog_line.text)
+        current_line += 1
+        if current_line >= limit_line:
+            break
+    cleaned_list = []
+    for raw_dialog in dialog_list:
+        cleaning = ass_to_plaintext(raw_dialog)
+        cleaned_list.append(cleaning.replace(r'\n', ' '))
+    result = ' '.join(cleaned_list)
+    return result
 
 
-def read_ssa_dialogs():
-    pass
-
-
-def read_srt_dialogs():
+def read_srt_dialogs(content: str) -> str:
     pass
 
 
