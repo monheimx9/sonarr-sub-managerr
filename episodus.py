@@ -241,6 +241,8 @@ def ask_user_input(header: dict, parsed_name: dict) -> TrackInfo:
         print(f'Track Name is now : {t.trackname}')
     t.language_ietf = parsed_name.get('tracklang')
     print(f'Is Track Language correct ? : Language is {t.language_ietf}')
+    print(f'Identified language in subtitle file is : '
+          f'{parsed_name.get("identified_lang", "undefiend")}')
     choice = input(r'[Y/n] : ')
     if choice.lower().startswith('n'):
         t.language_ietf = language_selector()
@@ -262,6 +264,7 @@ def build_subtitle_tags(ep_path: str, sub_list: list[str]) -> list[TrackInfo]:
             sub_list_ok.append(approuved_track)
         if sub.endswith('srt') or sub.endswith('ssa'):
             title_parsed = parse_external_trackname(ep_path, sub)
+            title_parsed['identified_lang'] = identify_lang_in_dialog(fullpath)
             approuved_track = ask_user_input({}, title_parsed)
             approuved_track.filepath = os.path.join(basedir, sub)
             sub_list_ok.append(approuved_track)
@@ -337,13 +340,17 @@ def read_ass_dialogs(ass_events) -> str:
     cleaned_list = []
     for raw_dialog in dialog_list:
         cleaning = ass_to_plaintext(raw_dialog)
-        cleaned_list.append(cleaning.replace(r'\n', ' '))
+        cleaned_list.append(cleaning.replace('\n', ' ').strip())
     result = ' '.join(cleaned_list)
     return result
 
 
 def read_srt_dialogs(content: str) -> str:
-    pass
+    timecode = r'\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}'
+    cleaned = re.sub(timecode, '', content)
+    cleaned = '\n'.join(line.strip()
+                        for line in cleaned.splitlines() if line.strip())
+    return cleaned.replace('\n', ' ')
 
 
 def read_sub_file(sub_path: str) -> str:
@@ -590,6 +597,8 @@ class Sonarr():
             ep_path = ep['episodeFile'].get('path')
             track_list = list_ext_tracks(ep_path)
             if len(track_list) > 0:
+                print(f'External subtitles found alongside the episode: '
+                      f'{len(track_list)} track(s) present in folder')
                 subs = build_subtitle_tags(ep_path, track_list)
 
 
