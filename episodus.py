@@ -35,6 +35,7 @@ class TrackInfo:
     season: Optional[str] = None
     episode: Optional[str] = None
     trackname: Optional[str] = None
+    release: Optional[str] = 'Anonymous'
     subtype: Optional[str] = None
     language_ietf: Optional[str] = None
     to_remux: Optional[bool] = None
@@ -60,6 +61,14 @@ class TrackInfo:
             return 'default.'
         else:
             return ''
+
+    @property
+    def trackname_combined(self) -> Optional[str]:
+        re_p = r'\[.+\]-\[.+\]'
+        if re.search(re_p, str(self.trackname)) is not None:
+            return self.trackname
+        else:
+            return f'[{self.release}]-[{self.trackname}]'
 
 
 def check_forced(track_name: str) -> bool:
@@ -482,7 +491,7 @@ class Episode():
                         os.remove(file_path)
 
 
-class Tracks():
+class MkvAnalyzer():
     def __init__(self):
         self._audio = []
         self.__subs = []
@@ -618,9 +627,11 @@ class Sonarr():
         ep.ep_id = ep_id
         ep.serie_id = self._serie_id
         if 'episodeFile' in sonarr_ep:
+            ep.tvdbid = sonarr_ep['series'].get('tvdbId')
             ep.season = sonarr_ep.get('seasonNumber')
             ep.number = sonarr_ep.get('episodeNumber')
             ep.video_path = sonarr_ep['episodeFile'].get('path')
+            ep.serie_path = sonarr_ep['series'].get('path')
             ep.release = sonarr_ep['episodeFile'].get('releaseGroup')
             if self._bool_export_ext_tracks:
                 self._list_ext_tracks(ep.video_path)

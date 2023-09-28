@@ -10,7 +10,7 @@ import argparse
 # import ass
 # from ass_tag_parser import parse_ass
 from episodus import Episode
-from episodus import Tracks
+from episodus import MkvAnalyzer
 from episodus import Sonarr
 from episodus import Subtitles
 import configus
@@ -54,19 +54,19 @@ def export_ep(ep_path: str,
               season: str,
               rel_group: str) -> None:
     global to_remux
-    tracks = Tracks()
+    mkv = MkvAnalyzer()
     subs = Subtitles()
     ep = Episode()
     subs_folder = f"{SUBTITLE_PATH}{tvid}/S{season}/E{ep_num}/"
     subs.analyze_folder(subs_folder)
     ep.video_path = ep_path
-    if tracks.identify(ep_path):
-        tracks.analyze()
-        if tracks.too_big:
+    if mkv.identify(ep_path):
+        mkv.analyze()
+        if mkv.too_big:
             video_path = ep.copy_temp()
         else:
             video_path = ep.video_path
-        for t in tracks.subs:
+        for t in mkv.subs:
             sub_path_full = (f"{subs_folder}"
                              f"S{season}.E{ep_num}."
                              f"[{rel_group}]-[{t.trackname}]."
@@ -74,13 +74,13 @@ def export_ep(ep_path: str,
                              f"{t.language_ietf}."
                              f"{t.forced}"
                              f"{t.subtype}")
-            tracks.export(video_path, str(t.trackId), sub_path_full)
+            mkv.export(video_path, str(t.trackId), sub_path_full)
             # if not args.all or args.reset, only on standard queue
             # eport temp subtitle track for syncronization with ffsubsync
             # remux prev external subs with new video and try to sync new subs
         ep.delete_temp()
         if to_remux:
-            subs.compare_with_mkv(tracks.subs)
+            subs.compare_with_mkv(mkv.subs)
             test = subs.subs_list
             print('Remuxing old sub tracks with new video file')
 
