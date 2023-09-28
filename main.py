@@ -37,13 +37,12 @@ def export_all_from_sonarr():
                 monitored = episode.get("monitored")
                 if monitored:
                     ep_id = episode.get("id")
-                    episodeInfo = sonarr.episode(ep_id)
-                    if 'episodeFile' in episodeInfo:
-                        epFile = episodeInfo["episodeFile"]
-                        ep_path = epFile.get("path")
-                        season_num = f"{episodeInfo.get('seasonNumber'):02d}"
-                        release = epFile.get('releaseGroup')
-                        ep_num = f"{episodeInfo.get('episodeNumber'):02d}"
+                    ep = sonarr.episode(ep_id)
+                    if ep.file_exist:
+                        ep_path = ep.video_path
+                        season_num = ep.season
+                        ep_num = ep.number
+                        release = ep.release
                         export_ep(ep_path, serie_tvid,
                                   ep_num, season_num, release)
         save_progress_sonarr(serie_id)

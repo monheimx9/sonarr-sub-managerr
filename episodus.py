@@ -363,10 +363,12 @@ class Episode():
     def __init__(self):
         self._serie_id = ""
         self._ep_id = ""
+        self._ep_file_exist = False
+        self._external_tracks: list[TrackInfo] = []
         self._number = ""
         self._season = ""
         self._video_path = ""
-        self.serie_path = ""
+        self._serie_path = ""
         self._sonarr_var = None
         self.release = ""
         self.tvdbid = ""
@@ -377,13 +379,29 @@ class Episode():
     def serie_id(self):
         return self._serie_id
 
+    @serie_id.setter
+    def serie_id(self, s_id: int | str):
+        self._serie_id = str(s_id)
+
     @property
     def ep_id(self):
         return self._ep_id
 
+    @ep_id.setter
+    def ep_id(self, id: int | str):
+        self._ep_id = str(id)
+
     @property
     def temp_path(self) -> str:
         return self._copy_temp_path
+
+    @property
+    def serie_path(self) -> str:
+        return self._serie_path
+
+    @serie_path.setter
+    def serie_path(self, s_path: str):
+        self._serie_path = s_path
 
     @property
     def video_path(self) -> str:
@@ -392,6 +410,19 @@ class Episode():
     @video_path.setter
     def video_path(self, new_path: str) -> None:
         self._video_path = new_path
+        self._ep_file_exist = True
+
+    @property
+    def file_exist(self) -> bool:
+        return self._ep_file_exist
+
+    @property
+    def ext_tracks(self) -> list[TrackInfo]:
+        return self._external_tracks
+
+    @ext_tracks.setter
+    def ext_tracks(self, tracks: list[TrackInfo]):
+        self._external_tracks = tracks
 
     @property
     def number(self) -> str:
@@ -564,6 +595,8 @@ class Sonarr():
         self._episode = {}
         self._episode_path = []
         self._bool_export_ext_tracks = export_external_tracks
+        self._external_tracks = []
+        self._serie_id = ''
 
     # tvdbid, seasonnumber, episodenumber, releasegroup
 
@@ -574,16 +607,24 @@ class Sonarr():
         return self._series
 
     def episode_list(self, serie_id: int | str) -> list:
+        self._serie_id = serie_id
         ep_list = self._sonarr.get_episode(serie_id, series=True)
         self._episode_list = ep_list
         return self._episode_list
 
-    def episode(self, ep_id: int | str) -> dict:
-        ep_id = int(ep_id)
-        ep = self._sonarr.get_episode(ep_id, series=False)
-        self._episode = ep
-        if self._bool_export_ext_tracks:
-            self._export_ext_tracks()
+    def episode(self, ep_id: int | str) -> Episode:
+        ep = Episode()
+        sonarr_ep = self._sonarr.get_episode(ep_id, series=False)
+        ep.ep_id = ep_id
+        ep.serie_id = self._serie_id
+        if 'episodeFile' in sonarr_ep:
+            ep.season = sonarr_ep.get('seasonNumber')
+            ep.number = sonarr_ep.get('episodeNumber')
+            ep.video_path = sonarr_ep['episodeFile'].get('path')
+            ep.release = sonarr_ep['episodeFile'].get('releaseGroup')
+            if self._bool_export_ext_tracks:
+                self._list_ext_tracks(ep.video_path)
+                ep.ext_tracks = self._external_tracks
         return ep
 
     def is_monitored(self, ep_id: int | str) -> bool:
@@ -591,15 +632,13 @@ class Sonarr():
         ep = self._sonarr.get_episode(ep_id, series=False)
         return ep.get("monitored", True)
 
-    def _export_ext_tracks(self) -> None:
-        ep = self._episode
-        if 'episodeFile' in ep:
-            ep_path = ep['episodeFile'].get('path')
-            track_list = list_ext_tracks(ep_path)
-            if len(track_list) > 0:
-                print(f'External subtitles found alongside the episode: '
-                      f'{len(track_list)} track(s) present in folder')
-                subs = build_subtitle_tags(ep_path, track_list)
+    def _list_ext_tracks(self, ep_path: str) -> None:
+        track_list = list_ext_tracks(ep_path)
+        if len(track_list) > 0:
+            print(f'External subtitles found alongside the episode: '
+                  f'{len(track_list)} track(s) present in folder')
+            subs = build_subtitle_tags(ep_path, track_list)
+            self._external_tracks = subs
 
 
 class Subtitles():
