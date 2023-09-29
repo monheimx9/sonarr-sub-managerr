@@ -67,9 +67,10 @@ def export_ep(ep_path: str,
         else:
             video_path = ep.video_path
         for t in mkv.subs:
+            t.release = rel_group
             sub_path_full = (f"{subs_folder}"
                              f"S{season}.E{ep_num}."
-                             f"[{rel_group}]-[{t.trackname}]."
+                             f"{t.trackname_combined}"
                              f"{t.default}"
                              f"{t.language_ietf}."
                              f"{t.forced}"

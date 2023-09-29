@@ -66,9 +66,9 @@ class TrackInfo:
     def trackname_combined(self) -> Optional[str]:
         re_p = r'\[.+\]-\[.+\]'
         if re.search(re_p, str(self.trackname)) is not None:
-            return self.trackname
+            return f'{self.trackname}.'
         else:
-            return f'[{self.release}]-[{self.trackname}]'
+            return f'[{self.release}]-[{self.trackname}].'
 
 
 def check_forced(track_name: str) -> bool:
@@ -150,6 +150,7 @@ def parse_subtitle_filename(file_path: str) -> TrackInfo:
 
 def parse_external_trackname(ep_path: str, sub_path: str) -> dict:
     results = {}
+    results['subtype'] = os.path.splitext(sub_path)[1].replace('.', '')
     filename = os.path.basename(ep_path)
     filename = os.path.splitext(filename)[0]
     sub_path_copy = sub_path
@@ -222,6 +223,7 @@ def ask_user_input(header: dict, parsed_name: dict) -> TrackInfo:
         key_list.append(key)
         val_list.append(value)
     t = TrackInfo()
+    t.subtype = parsed_name.get('subtype')
     print(parsed_name.get('filename'))
     t.is_forced = parsed_name.get('forced', False)
     print(f'Is "Forced track" correct ? Forced is {t.is_forced}')
@@ -601,10 +603,9 @@ class Sonarr():
         self._sonarr = SonarrAPI(SONARR_HOST_URL, SONARR_API)
         self._series = []
         self._episode_list = []
-        self._episode = {}
-        self._episode_path = []
         self._bool_export_ext_tracks = export_external_tracks
-        self._external_tracks = []
+        self._external_tracks: list[TrackInfo] = []
+        self._ep: Episode
         self._serie_id = ''
 
     # tvdbid, seasonnumber, episodenumber, releasegroup
@@ -634,6 +635,7 @@ class Sonarr():
             ep.serie_path = sonarr_ep['series'].get('path')
             ep.release = sonarr_ep['episodeFile'].get('releaseGroup')
             if self._bool_export_ext_tracks:
+                self._ep = ep
                 self._list_ext_tracks(ep.video_path)
                 ep.ext_tracks = self._external_tracks
         return ep
@@ -648,8 +650,18 @@ class Sonarr():
         if len(track_list) > 0:
             print(f'External subtitles found alongside the episode: '
                   f'{len(track_list)} track(s) present in folder')
-            subs = build_subtitle_tags(ep_path, track_list)
-            self._external_tracks = subs
+            self._external_tracks = build_subtitle_tags(ep_path, track_list)
+            self._move_ext_tracks()
+
+    def _move_ext_tracks(self) -> None:
+        ep = self._ep
+        tracks = self._external_tracks
+        sub_dir = f'{SUBTITLE_PATH}{ep.tvdbid}/S{ep.season}/E{ep.number}/'
+        s_path = f'{sub_dir}S{ep.season}.E{ep.number}.'
+        for t in tracks:
+            dst = (f'{s_path}{t.trackname_combined}{t.default}'
+                   f'{t.language_ietf}.{t.forced}{t.subtype}')
+            shutil.move(str(t.filepath), dst)
 
 
 class Subtitles():
