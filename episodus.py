@@ -499,6 +499,7 @@ class MkvAnalyzer():
         self.__subs = []
         self._tracks = {}
         self._video_path = ""
+        self._temp_folder = TEMP_FOLDER
 
     @property
     def subs(self) -> list[TrackInfo]:
@@ -597,6 +598,10 @@ class MkvAnalyzer():
         subprocess.run(cmd, shell=True, check=True)
         return path
 
+    def import_tracks(self, track_list: list[TrackInfo]):
+        mkv_path = self._video_path
+        temp_dir = self._temp_folder
+
 
 class Sonarr():
     def __init__(self, export_external_tracks=False) -> None:
@@ -666,7 +671,7 @@ class Sonarr():
 
 class Subtitles():
     def __init__(self) -> None:
-        self.__subs_list = []
+        self.__subs_list: list[TrackInfo]
 
     @property
     def subs_list(self) -> list[TrackInfo]:
