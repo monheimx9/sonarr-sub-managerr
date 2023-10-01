@@ -70,7 +70,7 @@ def export_ep(ep_path: str,
             t.release = rel_group
             sub_path_full = (f"{subs_folder}"
                              f"S{season}.E{ep_num}."
-                             f"{t.trackname_combined}"
+                             f"{t.trackname_combined}."
                              f"{t.default}"
                              f"{t.language_ietf}."
                              f"{t.forced}"
@@ -82,7 +82,7 @@ def export_ep(ep_path: str,
         ep.delete_temp()
         if to_remux:
             subs.compare_with_mkv(mkv.subs)
-            test = subs.subs_list
+            mkv.import_tracks(subs.subs_list)
             print('Remuxing old sub tracks with new video file')
 
 

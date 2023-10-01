@@ -39,7 +39,7 @@ class TrackInfo:
     subtype: Optional[str] = None
     language_ietf: Optional[str] = None
     to_remux: Optional[bool] = None
-    is_sdh: Optional[bool] = None
+    is_sdh: Optional[bool] = False
 
     @property
     def sdh(self) -> Optional[str]:
@@ -68,7 +68,7 @@ class TrackInfo:
         if re.search(re_p, str(self.trackname)) is not None:
             return f'{self.trackname}.'
         else:
-            return f'[{self.release}]-[{self.trackname}].'
+            return f'[{self.release}]-[{self.trackname}]'
 
 
 def check_forced(track_name: str) -> bool:
@@ -370,6 +370,19 @@ def read_sub_file(sub_path: str) -> str:
         return file_content
 
 
+def build_track_flags(track: TrackInfo, index: int) -> str:
+    i = str(index)
+    tn = f'--track-name {i}:\"{track.trackname_combined}\"'
+    td = f'--default-track-flag {i}:{str(track.is_default).lower()}'
+    te = f'--track-enabled-flag {i}:true'
+    tf = f'--forced-display-flag {i}:{str(track.is_forced).lower()}'
+    hi = f'--hearing-impaired-flag {i}:{str(track.is_sdh).lower()}'
+    tl = f'--language {i}:\"{track.language_ietf}\"'
+    file = str(track.filepath)
+    fullstring = f'{tn} {td} {te} {tf} {hi} {tl} {file}'
+    return fullstring
+
+
 class Episode():
     def __init__(self):
         self._serie_id = ""
@@ -599,8 +612,17 @@ class MkvAnalyzer():
         return path
 
     def import_tracks(self, track_list: list[TrackInfo]):
-        mkv_path = self._video_path
-        temp_dir = self._temp_folder
+        mkv_path: str = self._video_path
+        mkv_name: str = os.path.basename(mkv_path)
+        temp_dir: str = os.path.join(self._temp_folder, mkv_name)
+        i: int = 0
+        cmd: str = f'mkvmerge -o \"{temp_dir}\" \"{mkv_path}\"'
+        for t in track_list:
+            if t.to_remux:
+                cmd = f'{cmd} {build_track_flags(t, i)}'
+                i += 1
+        print(cmd)
+        subprocess.run(cmd, shell=True, check=True)
 
 
 class Sonarr():
@@ -664,14 +686,14 @@ class Sonarr():
         sub_dir = f'{SUBTITLE_PATH}{ep.tvdbid}/S{ep.season}/E{ep.number}/'
         s_path = f'{sub_dir}S{ep.season}.E{ep.number}.'
         for t in tracks:
-            dst = (f'{s_path}{t.trackname_combined}{t.default}'
+            dst = (f'{s_path}{t.trackname_combined}.{t.default}'
                    f'{t.language_ietf}.{t.forced}{t.subtype}')
             shutil.move(str(t.filepath), dst)
 
 
 class Subtitles():
     def __init__(self) -> None:
-        self.__subs_list: list[TrackInfo]
+        self.__subs_list: list[TrackInfo] = []
 
     @property
     def subs_list(self) -> list[TrackInfo]:
