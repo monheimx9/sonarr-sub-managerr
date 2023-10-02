@@ -22,6 +22,7 @@ TEMP_FOLDER = configus.CONF_TEMP_FOLDER
 DEFAULT_LANG = configus.CONF_DEFAULT_LANG
 SUBTITLE_PATH = configus.CONF_SUBTITLE_PATH
 LANGUAGE_TAGS = configus.COMMON_LANGUAGE_TAGS
+LOG = configus.CONF_LOGGER
 
 
 @dataclass
@@ -82,22 +83,28 @@ def check_forced(track_name: str) -> bool:
 
 
 def extension(sub_type) -> str:
-    sub_extension = ""
-    if "PGS" in sub_type:
-        sub_extension = "sup"
-    elif "ASS" in sub_type:
-        sub_extension = "ass"
-    elif "SSA" in sub_type:
-        sub_extension = "ssa"
-    elif "UTF8" in sub_type or "ASCII" in sub_type:
-        sub_extension = "srt"
-    elif "VOBSUB" in sub_type:
-        sub_extension = "sub"
-    elif "USF" in sub_type:
-        sub_extension = "usf"
-    elif "WEBVTT" in sub_type:
-        sub_extension = "vtt"
-    return sub_extension
+    """Returns the file extension for the given subtitle type.
+
+    Args:
+        sub_type: The subtitle type.
+    """
+    match sub_type:
+        case "PGS":
+            return "sup"
+        case "ASS":
+            return "ass"
+        case "SSA":
+            return "ssa"
+        case "UTF8" | "ASCII":
+            return "srt"
+        case "VOBSUB":
+            return "sub"
+        case "USF":
+            return "usf"
+        case "WEBVTT":
+            return "vtt"
+        case _:
+            return ""
 
 
 def list_ext_tracks(ep_path: str) -> list:
@@ -379,13 +386,14 @@ def build_track_flags(track: TrackInfo, index: int) -> str:
     hi = f'--hearing-impaired-flag {i}:{str(track.is_sdh).lower()}'
     tl = f'--language {i}:\"{track.language_ietf}\"'
     file = str(track.filepath)
-    fullstring = f'{tn} {td} {te} {tf} {hi} {tl} {file}'
+    fullstring = f'{td} {te} {tf} {hi} {tn} {tl} {file}'
     return fullstring
 
 
 class Episode():
     def __init__(self):
         self._serie_id = ""
+        self._serie_title = ""
         self._ep_id = ""
         self._ep_file_exist = False
         self._external_tracks: list[TrackInfo] = []
@@ -406,6 +414,14 @@ class Episode():
     @serie_id.setter
     def serie_id(self, s_id: int | str):
         self._serie_id = str(s_id)
+
+    @property
+    def serie_title(self) -> str:
+        return self._serie_title
+
+    @serie_title.setter
+    def serie_title(self, name: str):
+        self._serie_title = name
 
     @property
     def ep_id(self):
@@ -489,6 +505,7 @@ class Episode():
         self.release = value.get("sonarr_episodefile_releasegroup")
         self._serie_id = value.get("sonarr_series_id")
         self._ep_id = value.get("sonarr_episodefile_episodeids")
+        self._serie_title = value("sonarr_series_title")
 
     def copy_temp(self) -> str:
         path = shutil.copy(self._video_path, self._temp_folder)
@@ -623,6 +640,7 @@ class MkvAnalyzer():
                 i += 1
         print(cmd)
         subprocess.run(cmd, shell=True, check=True)
+        shutil.copy(temp_dir, os.path.dirname(mkv_path))
 
 
 class Sonarr():
@@ -654,6 +672,7 @@ class Sonarr():
         sonarr_ep = self._sonarr.get_episode(ep_id, series=False)
         ep.ep_id = ep_id
         ep.serie_id = self._serie_id
+        ep.serie_title = sonarr_ep['series'].get('title')
         if 'episodeFile' in sonarr_ep:
             ep.tvdbid = sonarr_ep['series'].get('tvdbId')
             ep.season = sonarr_ep.get('seasonNumber')
