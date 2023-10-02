@@ -18,26 +18,35 @@ import configus
 GRABING_FOLDER = configus.CONF_GRABING_FOLDER
 SUBTITLE_PATH = configus.CONF_SUBTITLE_PATH
 PROGRESS_FOLDER = configus.CONF_PROGRESS_FOLDER
+LOG = configus.CONF_LOGGER
 
 to_remux = False
 export_external_tracks = False
 
 
 def export_all_from_sonarr():
+    LOG.info('Exporting sonarr\'s entire collection')
     global export_external_tracks
     sonarr = Sonarr(export_external_tracks)
     all_series = sonarr.series
+    already_done = read_progress_sonarr()
     for serie in all_series:
         serie_id = serie.get("id")
         serie_tvid = serie.get("tvdbId")
         ep_list = sonarr.episode_list(serie_id)
-        already_done = read_progress_sonarr()
         if str(serie_id) not in already_done:
+            LOG.info(f'Treating tvdbId: {serie_tvid} {serie.get("title")}')
             for episode in ep_list:
                 monitored = episode.get("monitored")
+                if not monitored:
+                    LOG.info(
+                        f'S{episode.get("seasonNumber")}'
+                        f'E{episode.get("episodeNumber")} not monitored')
                 if monitored:
                     ep_id = episode.get("id")
                     ep = sonarr.episode(ep_id)
+                    if not ep.file_exist:
+                        LOG.info(f'No file for S{ep.season}E{ep.number}')
                     if ep.file_exist:
                         ep_path = ep.video_path
                         season_num = ep.season
@@ -100,16 +109,23 @@ def get_sonarr_var(data_file_path):
 
 def treat_queue_from_sonarr(source_folder) -> None:
     # Get a list of all files in the source folder
+    LOG.info('Treating queue from last imported/upgraded episodes')
     ep = Episode()
     sonarr = Sonarr()
     files = os.listdir(source_folder)
     for file in files:
         file_path_full = os.path.join(source_folder, file)
         ep.sonarr_var = get_sonarr_var(file_path_full)
+        LOG.info(
+            f'S{ep.season}E{ep.number} tvdbId: {ep.tvdbid} {ep.serie_title}')
         monitored = sonarr.is_monitored(ep.ep_id)
+        if not monitored:
+            LOG.info(
+                f'S{ep.season}E{ep.number} from {ep.tvdbid} isn\'t monitored')
         if monitored:
             export_ep(ep.video_path, ep.tvdbid,
                       ep.number, ep.season, ep.release)
+        LOG.debug(f'Removing {file_path_full}')
         os.remove(file_path_full)
 
 
@@ -119,8 +135,9 @@ def save_progress_sonarr(serie_id: int | str) -> None:
         with open(PROGRESS_FOLDER, 'a+') as file:
             if str(serie_id) not in already_done:
                 file.write(f'{str(serie_id)};')
+                LOG.info(f'Progress saved for serie ID: {serie_id}')
     except Exception as e:
-        print(f'An error occured: {e}')
+        LOG.exception(f'An error occured: {e}')
 
 
 def read_progress_sonarr() -> list:
@@ -130,15 +147,18 @@ def read_progress_sonarr() -> list:
             serie_ids = [serie.strip()
                          for serie in series.split(';')
                          if serie.strip()]
+            LOG.info(f'Last serieID saved in progress is: {serie_ids[-1]}')
             return serie_ids
     except FileNotFoundError:
+        LOG.info('Progress file not found')
         return []
     except Exception as e:
-        print(f'An error occured: {e}')
+        LOG.exception(f'An error occured: {e}')
         return []
 
 
 def reset_progress_sonarr() -> None:
+    LOG.info('Resetting all progress from previous export')
     with open(PROGRESS_FOLDER, 'w') as file:
         file.flush()
 
@@ -161,8 +181,10 @@ def main():
     args = arg.parse_args()
     if args.external:
         export_external_tracks = True
+        LOG.info('Export external tracks is set to True')
     if args.remux:
         to_remux = True
+        LOG.info('Remuxing back to the new video is set to True')
     if args.reset:
         reset_progress_sonarr()
         export_all_from_sonarr()

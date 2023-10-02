@@ -1,5 +1,15 @@
 CONF_SONARR_HOST_URL = 'http://0.0.0.0:8989'
 CONF_SONARR_API = 'somethinapiblabla'
+import logging
+
+logger = logging.getLogger('submanagerr')
+handler = logging.FileHandler('logs.log')
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+
+CONF_LOGGER = logger
 CONF_TEMP_FOLDER = './temp/'
 CONF_GRABING_FOLDER = "./grabs/"
 CONF_SUBTITLE_PATH = "/home/monheim/Documents/subtitles/"
@@ -33,7 +43,7 @@ COMMON_LANGUAGE_TAGS = {'en-US': 'English as spoken in the United States',
                         'ro-RO': 'Romanian as spoken in Romania',
                         'ko-KR': 'Korean as spoken in South Korea',
                         'da-DK': 'Danish as spoken in Denmark',
-                        'zh-Hans-CN': 'Chinese Simplified based on Mandarin as spoken in Mainland China',
+                        'zh-Hans-CN': 'Chinese Simplified based on Mandarin',
                         'hu-HU': 'Hungarian as spoken in Hungary',
                         'cs-CZ': 'Czech as spoken in the Czech Republic',
                         'sk-SK': 'Slovakian as spoken in Slovakia',
