@@ -33,8 +33,8 @@ def export_all_from_sonarr():
     for serie in all_series:
         serie_id = serie.get("id")
         serie_tvid = serie.get("tvdbId")
-        ep_list = sonarr.episode_list(serie_id)
         if str(serie_id) not in already_done:
+            ep_list = sonarr.episode_list(serie_id)
             LOG.info(f'Treating tvdbId: {serie_tvid} {serie.get("title")}')
             for episode in ep_list:
                 monitored = episode.get("monitored")
@@ -45,8 +45,6 @@ def export_all_from_sonarr():
                 if monitored:
                     ep_id = episode.get("id")
                     ep = sonarr.episode(ep_id)
-                    if not ep.file_exist:
-                        LOG.info(f'No file for S{ep.season}E{ep.number}')
                     if ep.file_exist:
                         ep_path = ep.video_path
                         season_num = ep.season
@@ -54,7 +52,7 @@ def export_all_from_sonarr():
                         release = ep.release
                         export_ep(ep_path, serie_tvid,
                                   ep_num, season_num, release)
-        save_progress_sonarr(serie_id)
+            save_progress_sonarr(serie_id)
 
 
 def export_ep(ep_path: str,
@@ -62,6 +60,7 @@ def export_ep(ep_path: str,
               ep_num: str,
               season: str,
               rel_group: str) -> None:
+    LOG.info(f'Start: S{season}E{ep_num} from rel. group {rel_group}')
     global to_remux
     mkv = MkvAnalyzer()
     subs = Subtitles()
@@ -147,7 +146,7 @@ def read_progress_sonarr() -> list:
             serie_ids = [serie.strip()
                          for serie in series.split(';')
                          if serie.strip()]
-            LOG.info(f'Last serieID saved in progress is: {serie_ids[-1]}')
+            LOG.debug(f'Last serieID saved in progress is: {serie_ids[-1]}')
             return serie_ids
     except FileNotFoundError:
         LOG.info('Progress file not found')

@@ -645,6 +645,7 @@ class MkvAnalyzer():
 
 class Sonarr():
     def __init__(self, export_external_tracks=False) -> None:
+        LOG.debug('init Sonarr()')
         self._sonarr = SonarrAPI(SONARR_HOST_URL, SONARR_API)
         self._series = []
         self._episode_list = []
@@ -659,12 +660,15 @@ class Sonarr():
     def series(self) -> list:
         series = self._sonarr.get_series()
         self._series = series
+        LOG.debug(f'Get serie list from sonarr - Lenght: {len(series)}')
         return self._series
 
     def episode_list(self, serie_id: int | str) -> list:
         self._serie_id = serie_id
         ep_list = self._sonarr.get_episode(serie_id, series=True)
         self._episode_list = ep_list
+        LOG.debug(
+            f'Get ep list for serie: {serie_id} - Lenght: {len(ep_list)} eps')
         return self._episode_list
 
     def episode(self, ep_id: int | str) -> Episode:
@@ -673,6 +677,10 @@ class Sonarr():
         ep.ep_id = ep_id
         ep.serie_id = self._serie_id
         ep.serie_title = sonarr_ep['series'].get('title')
+        if 'episodeFile' not in sonarr_ep:
+            LOG.warning(f'No file for episodeID: {ep.ep_id} '
+                        f'S{sonarr_ep.get("seasonNumber")}'
+                        f'E{sonarr_ep.get("episodeNumber")}')
         if 'episodeFile' in sonarr_ep:
             ep.tvdbid = sonarr_ep['series'].get('tvdbId')
             ep.season = sonarr_ep.get('seasonNumber')
@@ -714,7 +722,7 @@ class Subtitles():
     def __init__(self) -> None:
         self.__subs_list: list[TrackInfo] = []
 
-    @property
+    @ property
     def subs_list(self) -> list[TrackInfo]:
         return self.__subs_list
 
