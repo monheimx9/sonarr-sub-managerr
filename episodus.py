@@ -194,14 +194,18 @@ def option_selector(k_list: list[str], v_list: list[str], txt: str) -> str:
     for i, k in enumerate(k_list):
         print(f'{i}. {k}: {v_list[i]}')
     while True:
-        choice = int(input('Option N°: '))
-        if 0 <= choice <= len(k_list):
-            if choice == 0:
-                result = input(txt)
-                break
-            else:
-                result = v_list[choice]
-                break
+        choice = input('Option N°: ')
+        if choice.isnumeric():
+            choice = int(choice)
+            if 0 <= choice <= len(k_list):
+                if choice == 0:
+                    result = input(txt)
+                    break
+                else:
+                    result = v_list[choice]
+                    break
+        else:
+            print('Only numeric values')
     return result
 
 
