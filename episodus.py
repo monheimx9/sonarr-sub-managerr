@@ -746,9 +746,13 @@ class Subtitles():
         if len(sub_tracks) > 0:
             for sub_track in sub_tracks:
                 lang = str(sub_track.language_ietf)[:2]
+                n = str(sub_track.trackname_combined)
+                e = str(sub_track.subtype)
                 for mkv_track in mkv_tracks:
                     mkv_lang = str(mkv_track.language_ietf)[:2]
-                    if lang in mkv_lang:
+                    mkv_n = str(mkv_track.trackname_combined)
+                    mkv_e = str(mkv_track.subtype)
+                    if lang in mkv_lang and n in mkv_n and e in mkv_e:
                         sub_track.to_remux = False
                         break
                     else:
