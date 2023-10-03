@@ -376,15 +376,15 @@ def read_sub_file(sub_path: str) -> str:
         return file_content
 
 
-def build_track_flags(track: TrackInfo, index: int) -> str:
-    i = str(index)
+def build_track_flags(track: TrackInfo) -> str:
+    i = '0'
     tn = f'--track-name {i}:\"{track.trackname_combined}\"'
     td = f'--default-track-flag {i}:{str(track.is_default).lower()}'
     te = f'--track-enabled-flag {i}:true'
     tf = f'--forced-display-flag {i}:{str(track.is_forced).lower()}'
     hi = f'--hearing-impaired-flag {i}:{str(track.is_sdh).lower()}'
     tl = f'--language {i}:\"{track.language_ietf}\"'
-    file = str(track.filepath)
+    file = f'\"{str(track.filepath)}\"'
     fullstring = f'{td} {te} {tf} {hi} {tn} {tl} {file}'
     return fullstring
 
@@ -635,11 +635,12 @@ class MkvAnalyzer():
         cmd: str = f'mkvmerge -o \"{temp_dir}\" \"{mkv_path}\"'
         for t in track_list:
             if t.to_remux:
-                cmd = f'{cmd} {build_track_flags(t, i)}'
+                cmd = f'{cmd} {build_track_flags(t)}'
                 i += 1
-        print(cmd)
-        subprocess.run(cmd, shell=True, check=True)
-        shutil.copy(temp_dir, os.path.dirname(mkv_path))
+        LOG.debug(cmd)
+        if i > 0:
+            subprocess.run(cmd, shell=True, check=True)
+            shutil.copy(temp_dir, os.path.dirname(mkv_path))
 
 
 class Sonarr():
