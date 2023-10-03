@@ -1,5 +1,5 @@
 /grabs/*
 /__pycache__/*
 /progress/*
-./temp/*
-./logs.log
+/temp/*
+/logs.log
