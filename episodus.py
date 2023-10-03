@@ -67,7 +67,7 @@ class TrackInfo:
     def trackname_combined(self) -> Optional[str]:
         re_p = r'\[.+\]-\[.+\]'
         if re.search(re_p, str(self.trackname)) is not None:
-            return f'{self.trackname}.'
+            return f'{self.trackname}'
         else:
             return f'[{self.release}]-[{self.trackname}]'
 
@@ -88,23 +88,22 @@ def extension(sub_type) -> str:
     Args:
         sub_type: The subtitle type.
     """
-    match sub_type:
-        case "PGS":
-            return "sup"
-        case "ASS":
-            return "ass"
-        case "SSA":
-            return "ssa"
-        case "UTF8" | "ASCII":
-            return "srt"
-        case "VOBSUB":
-            return "sub"
-        case "USF":
-            return "usf"
-        case "WEBVTT":
-            return "vtt"
-        case _:
-            return ""
+    sub_extension = ""
+    if "PGS" in sub_type:
+        sub_extension = "sup"
+    elif "ASS" in sub_type:
+        sub_extension = "ass"
+    elif "SSA" in sub_type:
+        sub_extension = "ssa"
+    elif "UTF8" in sub_type or "ASCII" in sub_type:
+        sub_extension = "srt"
+    elif "VOBSUB" in sub_type:
+        sub_extension = "sub"
+    elif "USF" in sub_type:
+        sub_extension = "usf"
+    elif "WEBVTT" in sub_type:
+        sub_extension = "vtt"
+    return sub_extension
 
 
 def list_ext_tracks(ep_path: str) -> list:
