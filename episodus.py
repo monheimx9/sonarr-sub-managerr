@@ -229,41 +229,45 @@ def ask_user_input(header: dict, parsed_name: dict) -> TrackInfo:
         key_list.append(key)
         val_list.append(value)
     t = TrackInfo()
-    t.subtype = parsed_name.get('subtype')
-    print(parsed_name.get('filename'))
-    t.is_forced = parsed_name.get('forced', False)
-    print(f'Is "Forced track" correct ? Forced is {t.is_forced}')
-    choice = input(r'[Y/n] : ')
-    if choice.lower().startswith('n'):
-        t.is_forced = not t.is_forced
-        print(f'Forced track is now {t.is_forced}')
-    t.is_default = parsed_name.get('default', False)
-    print(f'Is "Default track" correct ? Default is {t.is_default}')
-    choice = input(r'[Y/n] : ')
-    if choice.lower().startswith('n'):
-        t.is_default = not t.is_default
-        print(f'Default track is now {t.is_default}')
-    t.is_sdh = parsed_name.get('cc', False)
-    print(f'Is "Hearing impaired track" correct ? CC is {t.is_sdh}')
-    choice = input(r'[Y/n] : ')
-    if choice.lower().startswith('n'):
-        t.is_sdh = not t.is_sdh
-        print(f'Hearing impaired track is now {t.is_sdh}')
-    t.trackname = parsed_name.get('trackname', header.get('title', 'und'))
-    print(f'Is Track Name correct ? Track Name is {t.trackname}')
-    choice = input(r'[Y/n] : ')
-    if choice.lower().startswith('n'):
-        txt = 'Write your own Track Name : '
-        t.trackname = option_selector(key_list, val_list, txt)
-        print(f'Track Name is now : {t.trackname}')
-    t.language_ietf = parsed_name.get('tracklang')
-    print(f'Is Track Language correct ? : Language is {t.language_ietf}')
-    print(f'Identified language in subtitle file is : '
-          f'{parsed_name.get("identified_lang", "undefiend")}')
-    choice = input(r'[Y/n] : ')
-    if choice.lower().startswith('n'):
-        t.language_ietf = language_selector()
-        print(f'Track Lang is now : {t.language_ietf}')
+    while True:
+        t.subtype = parsed_name.get('subtype')
+        print(parsed_name.get('filename'))
+        t.is_forced = parsed_name.get('forced', False)
+        print(f'Is "Forced track" correct ? Forced is {t.is_forced}')
+        choice = input(r'[Y/n] : ')
+        if choice.lower().startswith('n'):
+            t.is_forced = not t.is_forced
+            print(f'Forced track is now {t.is_forced}')
+        t.is_default = parsed_name.get('default', False)
+        print(f'Is "Default track" correct ? Default is {t.is_default}')
+        choice = input(r'[Y/n] : ')
+        if choice.lower().startswith('n'):
+            t.is_default = not t.is_default
+            print(f'Default track is now {t.is_default}')
+        t.is_sdh = parsed_name.get('cc', False)
+        print(f'Is "Hearing impaired track" correct ? CC is {t.is_sdh}')
+        choice = input(r'[Y/n] : ')
+        if choice.lower().startswith('n'):
+            t.is_sdh = not t.is_sdh
+            print(f'Hearing impaired track is now {t.is_sdh}')
+        t.trackname = parsed_name.get('trackname', header.get('title', 'und'))
+        print(f'Is Track Name correct ? Track Name is {t.trackname}')
+        choice = input(r'[Y/n] : ')
+        if choice.lower().startswith('n'):
+            txt = 'Write your own Track Name : '
+            t.trackname = option_selector(key_list, val_list, txt)
+            print(f'Track Name is now : {t.trackname}')
+        t.language_ietf = parsed_name.get('tracklang')
+        print(f'Is Track Language correct ? : Language is {t.language_ietf}')
+        print(f'Identified language in subtitle file is : '
+              f'{parsed_name.get("identified_lang", "undefiend")}')
+        choice = input(r'[Y/n] : ')
+        if choice.lower().startswith('n'):
+            t.language_ietf = language_selector()
+            print(f'Track Lang is now : {t.language_ietf}')
+        choice = input('Is everything correct ? [Y/n]')
+        if not choice.lower().startswith('n'):
+            break
     return t
 
 
