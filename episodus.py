@@ -727,9 +727,14 @@ class Sonarr():
         tracks = self._external_tracks
         sub_dir = f'{SUBTITLE_PATH}{ep.tvdbid}/S{ep.season}/E{ep.number}/'
         s_path = f'{sub_dir}S{ep.season}.E{ep.number}.'
+        LOG.debug('Moving external tracks')
         for t in tracks:
             dst = (f'{s_path}{t.trackname_combined}.{t.default}'
                    f'{t.language_ietf}.{t.forced}{t.subtype}')
+            if not os.path.exists(sub_dir):
+                LOG.debug(f'{sub_dir} doesn\'t exist, creating parents dir')
+                os.makedirs(sub_dir)
+            LOG.debug(dst)
             shutil.move(str(t.filepath), dst)
 
 
@@ -742,6 +747,7 @@ class Subtitles():
         return self.__subs_list
 
     def compare_with_mkv(self, mkv_tracks: list[TrackInfo]) -> list[TrackInfo]:
+        LOG.debug('Comparing external tracks with MKV')
         sub_tracks = self.subs_list
         if len(sub_tracks) > 0:
             for sub_track in sub_tracks:
@@ -754,6 +760,7 @@ class Subtitles():
                     mkv_e = str(mkv_track.subtype)
                     if lang in mkv_lang and n in mkv_n and e in mkv_e:
                         sub_track.to_remux = False
+                        LOG.debug(f'Track already exists: {mkv_n}')
                         break
                     else:
                         sub_track.to_remux = True

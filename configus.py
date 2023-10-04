@@ -4,12 +4,18 @@ import logging
 
 logger = logging.getLogger('submanagerr')
 handler = logging.FileHandler('logs.log')
+console_handler = logging.StreamHandler()
+console_formater = logging.Formatter('%(levelname)s - %(message)s')
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
+console_handler.setFormatter(console_formater)
 logger.addHandler(handler)
+logger.addHandler(console_handler)
 logger.setLevel(logging.DEBUG)
 
 CONF_LOGGER = logger
+CONF_SONARR_HOST_URL = 'http://10.100.3.2:8989'
+CONF_SONARR_API = '6339d80ef2354a8dbdf3ce8fd4528d4d'
 CONF_TEMP_FOLDER = './temp/'
 CONF_GRABING_FOLDER = "./grabs/"
 CONF_SUBTITLE_PATH = "/home/monheim/Documents/subtitles/"
