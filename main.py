@@ -1,14 +1,8 @@
 import os
 import argparse
-# import sys
-# import subprocess
-# import py3langid as langid
 # from iso639 import Lang
-# from langcodes import Language
-# from langcodes import standardize_tag
 # from pysubparser import parser
 # import ass
-# from ass_tag_parser import parse_ass
 from episodus import Episode
 from episodus import MkvAnalyzer
 from episodus import Sonarr
