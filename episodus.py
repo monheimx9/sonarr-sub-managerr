@@ -338,12 +338,17 @@ def clean_header(sub: dict) -> dict:
 
 
 def get_subtitle_header(sub_path: str, cleaning=False) -> dict:
-    content = get_subtitle_file_content(sub_path)
-    sub = read_ass(content)
-    sub = dict(sub.script_info)
-    if cleaning:
-        sub = clean_header(sub)
-    return sub
+    try:
+        content = get_subtitle_file_content(sub_path)
+        sub = read_ass(content)
+        sub = dict(sub.script_info)
+        if cleaning:
+            sub = clean_header(sub)
+        return sub
+    except Exception as e:
+        LOG.error(f'Could not read subtitle header {e} on:')
+        LOG.error(sub_path)
+        return {}
 
 
 def get_subtitle_file_content(sub_path: str) -> str:
@@ -367,21 +372,25 @@ def identify_lang_in_dialog(sub_path: str) -> str:
 
 
 def read_ass_dialogs(ass_events) -> str:
-    all_events = read_ass(ass_events).events
-    dialog_list = []
-    limit_line = 150
-    current_line = 0
-    for dialog_line in all_events:
-        dialog_list.append(dialog_line.text)
-        current_line += 1
-        if current_line >= limit_line:
-            break
-    cleaned_list = []
-    for raw_dialog in dialog_list:
-        cleaning = ass_to_plaintext(raw_dialog)
-        cleaned_list.append(cleaning.replace('\n', ' ').strip())
-    result = ' '.join(cleaned_list)
-    return result
+    try:
+        all_events = read_ass(ass_events).events
+        dialog_list = []
+        limit_line = 150
+        current_line = 0
+        for dialog_line in all_events:
+            dialog_list.append(dialog_line.text)
+            current_line += 1
+            if current_line >= limit_line:
+                break
+        cleaned_list = []
+        for raw_dialog in dialog_list:
+            cleaning = ass_to_plaintext(raw_dialog)
+            cleaned_list.append(cleaning.replace('\n', ' ').strip())
+        result = ' '.join(cleaned_list)
+        return result
+    except Exception as e:
+        LOG.error(f'Could not read dialog lines (event) {e}')
+        return ''
 
 
 def read_srt_dialogs(content: str) -> str:
