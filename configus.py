@@ -51,4 +51,7 @@ COMMON_LANGUAGE_TAGS = {'en-US': 'English as spoken in the United States',
                         'hu-HU': 'Hungarian as spoken in Hungary',
                         'cs-CZ': 'Czech as spoken in the Czech Republic',
                         'sk-SK': 'Slovakian as spoken in Slovakia',
+                        'ar-SA': 'Arabic as spoken in Saudi Arabia',
+                        'ar': 'Arabic',
+                        'ru-RU': 'Russian as spoken in Russia',
                         }
