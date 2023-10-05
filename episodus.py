@@ -154,6 +154,20 @@ def parse_subtitle_filename(file_path: str) -> TrackInfo:
     return s
 
 
+def subtitle_export_name(t: TrackInfo) -> str:
+    """Returns the file name for the subtitle without the parents dir
+    In exemple:
+        S01.E20.[Retr0]-[Signs#Songs [Commie]].default.eng.forced.ass
+    """
+    sub_name = (f"S{t.season}.E{t.episode}."
+                f"{t.trackname_combined}."
+                f"{t.default}"
+                f"{t.language_ietf}."
+                f"{t.forced}{t.sdh}"
+                f"{t.subtype}")
+    return sub_name
+
+
 def parse_external_trackname(ep_path: str, sub_path: str) -> dict:
     results = {}
     results['subtype'] = os.path.splitext(sub_path)[1].replace('.', '')
@@ -643,6 +657,7 @@ class MkvAnalyzer():
         return path
 
     def import_tracks(self, track_list: list[TrackInfo]):
+        LOG.debug(f'Muxing new track(s) into {self._video_path}')
         mkv_path: str = self._video_path
         mkv_name: str = os.path.basename(mkv_path)
         temp_dir: str = os.path.join(self._temp_folder, mkv_name)
@@ -726,11 +741,11 @@ class Sonarr():
         ep = self._ep
         tracks = self._external_tracks
         sub_dir = f'{SUBTITLE_PATH}{ep.tvdbid}/S{ep.season}/E{ep.number}/'
-        s_path = f'{sub_dir}S{ep.season}.E{ep.number}.'
         LOG.debug('Moving external tracks')
         for t in tracks:
-            dst = (f'{s_path}{t.trackname_combined}.{t.default}'
-                   f'{t.language_ietf}.{t.forced}{t.subtype}')
+            t.episode = ep.number
+            t.season = ep.season
+            dst = (f'{sub_dir}{subtitle_export_name(t)}')
             if not os.path.exists(sub_dir):
                 LOG.debug(f'{sub_dir} doesn\'t exist, creating parents dir')
                 os.makedirs(sub_dir)

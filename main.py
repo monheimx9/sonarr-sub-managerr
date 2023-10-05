@@ -3,7 +3,7 @@ import argparse
 # from iso639 import Lang
 # from pysubparser import parser
 # import ass
-from episodus import Episode
+from episodus import Episode, subtitle_export_name
 from episodus import MkvAnalyzer
 from episodus import Sonarr
 from episodus import Subtitles
@@ -70,13 +70,9 @@ def export_ep(ep_path: str,
             video_path = ep.video_path
         for t in mkv.subs:
             t.release = rel_group
-            sub_path_full = (f"{subs_folder}"
-                             f"S{season}.E{ep_num}."
-                             f"{t.trackname_combined}."
-                             f"{t.default}"
-                             f"{t.language_ietf}."
-                             f"{t.forced}"
-                             f"{t.subtype}")
+            t.episode = ep_num
+            t.season = season
+            sub_path_full = (f"{subs_folder}{subtitle_export_name(t)}")
             mkv.export(video_path, str(t.trackId), sub_path_full)
             # if not args.all or args.reset, only on standard queue
             # eport temp subtitle track for syncronization with ffsubsync
@@ -85,7 +81,6 @@ def export_ep(ep_path: str,
         if to_remux:
             subs.compare_with_mkv(mkv.subs)
             mkv.import_tracks(subs.subs_list)
-            print('Remuxing old sub tracks with new video file')
 
 
 def get_sonarr_var(data_file_path):
