@@ -41,6 +41,7 @@ class TrackInfo:
     language_ietf: Optional[str] = None
     to_remux: Optional[bool] = None
     is_sdh: Optional[bool] = False
+    delay_ms: int = 0
 
     @property
     def sdh(self) -> Optional[str]:
@@ -70,6 +71,11 @@ class TrackInfo:
             return f'{self.trackname}'
         else:
             return f'[{self.release}]-[{self.trackname}]'
+
+
+@dataclass
+class AudioTrackInfo(TrackInfo):
+    codec: str = ''
 
 
 def check_forced(track_name: str) -> bool:
