@@ -242,7 +242,8 @@ def language_selector() -> str:
     return lang
 
 
-def ask_user_input(header: dict, parsed_name: dict) -> TrackInfo:
+def ask_user_input(header: dict, parsed_name: dict,
+                   guess: bool = False) -> TrackInfo:
     key_list = ['Write your own']
     val_list = ['If you choose this option, you can input your own text']
     if not len(header) == 0:
@@ -253,49 +254,60 @@ def ask_user_input(header: dict, parsed_name: dict) -> TrackInfo:
         key_list.append(key)
         val_list.append(value)
     t = TrackInfo()
-    while True:
+    if not guess:
+        while True:
+            t.subtype = parsed_name.get('subtype')
+            print(parsed_name.get('filename'))
+            t.is_forced = parsed_name.get('forced', False)
+            print(f'Is "Forced track" correct ? Forced is {t.is_forced}')
+            choice = input(r'[Y/n] : ')
+            if choice.lower().startswith('n'):
+                t.is_forced = not t.is_forced
+                print(f'Forced track is now {t.is_forced}')
+            t.is_default = parsed_name.get('default', False)
+            print(f'Is "Default track" correct ? Default is {t.is_default}')
+            choice = input(r'[Y/n] : ')
+            if choice.lower().startswith('n'):
+                t.is_default = not t.is_default
+                print(f'Default track is now {t.is_default}')
+            t.is_sdh = parsed_name.get('cc', False)
+            print(f'Is "Hearing impaired track" correct ? CC is {t.is_sdh}')
+            choice = input(r'[Y/n] : ')
+            if choice.lower().startswith('n'):
+                t.is_sdh = not t.is_sdh
+                print(f'Hearing impaired track is now {t.is_sdh}')
+            t.trackname = parsed_name.get(
+                'trackname', header.get('title', 'und'))
+            print(f'Is Track Name correct ? Track Name is {t.trackname}')
+            choice = input(r'[Y/n] : ')
+            if choice.lower().startswith('n'):
+                txt = 'Write your own Track Name : '
+                t.trackname = option_selector(key_list, val_list, txt)
+                print(f'Track Name is now : {t.trackname}')
+            t.language_ietf = parsed_name.get('tracklang')
+            print(
+                f'Is Track Language correct ? : Language is {t.language_ietf}')
+            print(f'Identified language in subtitle file is : '
+                  f'{parsed_name.get("identified_lang", "undefiend")}')
+            choice = input(r'[Y/n] : ')
+            if choice.lower().startswith('n'):
+                t.language_ietf = language_selector()
+                print(f'Track Lang is now : {t.language_ietf}')
+            choice = input('Is everything correct ? [Y/n]')
+            if not choice.lower().startswith('n'):
+                break
+    else:
         t.subtype = parsed_name.get('subtype')
-        print(parsed_name.get('filename'))
         t.is_forced = parsed_name.get('forced', False)
-        print(f'Is "Forced track" correct ? Forced is {t.is_forced}')
-        choice = input(r'[Y/n] : ')
-        if choice.lower().startswith('n'):
-            t.is_forced = not t.is_forced
-            print(f'Forced track is now {t.is_forced}')
         t.is_default = parsed_name.get('default', False)
-        print(f'Is "Default track" correct ? Default is {t.is_default}')
-        choice = input(r'[Y/n] : ')
-        if choice.lower().startswith('n'):
-            t.is_default = not t.is_default
-            print(f'Default track is now {t.is_default}')
         t.is_sdh = parsed_name.get('cc', False)
-        print(f'Is "Hearing impaired track" correct ? CC is {t.is_sdh}')
-        choice = input(r'[Y/n] : ')
-        if choice.lower().startswith('n'):
-            t.is_sdh = not t.is_sdh
-            print(f'Hearing impaired track is now {t.is_sdh}')
         t.trackname = parsed_name.get('trackname', header.get('title', 'und'))
-        print(f'Is Track Name correct ? Track Name is {t.trackname}')
-        choice = input(r'[Y/n] : ')
-        if choice.lower().startswith('n'):
-            txt = 'Write your own Track Name : '
-            t.trackname = option_selector(key_list, val_list, txt)
-            print(f'Track Name is now : {t.trackname}')
         t.language_ietf = parsed_name.get('tracklang')
-        print(f'Is Track Language correct ? : Language is {t.language_ietf}')
-        print(f'Identified language in subtitle file is : '
-              f'{parsed_name.get("identified_lang", "undefiend")}')
-        choice = input(r'[Y/n] : ')
-        if choice.lower().startswith('n'):
-            t.language_ietf = language_selector()
-            print(f'Track Lang is now : {t.language_ietf}')
-        choice = input('Is everything correct ? [Y/n]')
-        if not choice.lower().startswith('n'):
-            break
     return t
 
 
-def build_subtitle_tags(ep_path: str, sub_list: list[str]) -> list[TrackInfo]:
+def build_subtitle_tags(ep_path: str, sub_list: list[str],
+                        guess: bool = False) -> list[TrackInfo]:
     sub_list_ok = []
     basedir = os.path.dirname(ep_path)
     for sub in sub_list:
@@ -304,13 +316,13 @@ def build_subtitle_tags(ep_path: str, sub_list: list[str]) -> list[TrackInfo]:
             header = get_subtitle_header(fullpath, True)
             title_parsed = parse_external_trackname(ep_path, sub)
             title_parsed['identified_lang'] = identify_lang_in_dialog(fullpath)
-            approuved_track = ask_user_input(header, title_parsed)
+            approuved_track = ask_user_input(header, title_parsed, guess)
             approuved_track.filepath = os.path.join(basedir, sub)
             sub_list_ok.append(approuved_track)
         if sub.endswith('srt') or sub.endswith('ssa'):
             title_parsed = parse_external_trackname(ep_path, sub)
             title_parsed['identified_lang'] = identify_lang_in_dialog(fullpath)
-            approuved_track = ask_user_input({}, title_parsed)
+            approuved_track = ask_user_input({}, title_parsed, guess)
             approuved_track.filepath = os.path.join(basedir, sub)
             sub_list_ok.append(approuved_track)
     return sub_list_ok
@@ -672,7 +684,6 @@ class MkvAnalyzer():
         return path
 
     def import_tracks(self, track_list: list[TrackInfo]):
-        LOG.debug(f'Muxing new track(s) into {self._video_path}')
         mkv_path: str = self._video_path
         mkv_name: str = os.path.basename(mkv_path)
         temp_dir: str = os.path.join(self._temp_folder, mkv_name)
@@ -682,8 +693,9 @@ class MkvAnalyzer():
             if t.to_remux:
                 cmd = f'{cmd} {build_track_flags(t)}'
                 i += 1
-        LOG.debug(cmd)
         if i > 0:
+            LOG.debug(f'Muxing new track(s) into {self._video_path}')
+            LOG.debug(cmd)
             subprocess.run(cmd, shell=True, check=True)
             shutil.copy(temp_dir, os.path.dirname(mkv_path))
 
@@ -695,11 +707,21 @@ class Sonarr():
         self._series = []
         self._episode_list = []
         self._bool_export_ext_tracks = export_external_tracks
+        self._guess_ext_tracks = False
         self._external_tracks: list[TrackInfo] = []
         self._ep: Episode
         self._serie_id = ''
 
     # tvdbid, seasonnumber, episodenumber, releasegroup
+
+    def external_tracks_guess_method(self, folder: str = ''):
+        if self._bool_export_ext_tracks:
+            print('You can let the program guess every flags for the'
+                  'external tracks, are you sure of the file organisation?')
+            print(f'Check folder: {folder}')
+            method = input('[y/N]: ')
+            if method.lower().startswith('y'):
+                self._guess_ext_tracks = True
 
     @property
     def series(self) -> list:
@@ -747,9 +769,11 @@ class Sonarr():
     def _list_ext_tracks(self, ep_path: str) -> None:
         track_list = list_ext_tracks(ep_path)
         if len(track_list) > 0:
-            print(f'External subtitles found alongside the episode: '
-                  f'{len(track_list)} track(s) present in folder')
-            self._external_tracks = build_subtitle_tags(ep_path, track_list)
+            guess = self._guess_ext_tracks
+            LOG.info(f'External subtitles found alongside the episode: '
+                     f'{len(track_list)} track(s) present in folder')
+            self._external_tracks = build_subtitle_tags(
+                ep_path, track_list, guess)
             self._move_ext_tracks()
 
     def _move_ext_tracks(self) -> None:

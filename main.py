@@ -30,6 +30,7 @@ def export_all_from_sonarr():
         if str(serie_id) not in already_done:
             ep_list = sonarr.episode_list(serie_id)
             LOG.info(f'Treating tvdbId: {serie_tvid} {serie.get("title")}')
+            sonarr.external_tracks_guess_method(serie.get('path'))
             for episode in ep_list:
                 monitored = episode.get("monitored")
                 if not monitored:
