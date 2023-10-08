@@ -171,6 +171,7 @@ def subtitle_export_name(t: TrackInfo) -> str:
                 f"{t.language_ietf}."
                 f"{t.forced}{t.sdh}"
                 f"{t.subtype}")
+    LOG.debug(sub_name)
     return sub_name
 
 
@@ -303,6 +304,7 @@ def ask_user_input(header: dict, parsed_name: dict,
         t.is_sdh = parsed_name.get('cc', False)
         t.trackname = parsed_name.get('trackname', header.get('title', 'und'))
         t.language_ietf = parsed_name.get('tracklang')
+    LOG.debug(subtitle_export_name(t))
     return t
 
 
@@ -563,6 +565,7 @@ class Episode():
         self._serie_title = value("sonarr_series_title")
 
     def copy_temp(self) -> str:
+        LOG.debug(f'Make temp copy of {self._video_path}')
         path = shutil.copy(self._video_path, self._temp_folder)
         self._copy_temp_path = path
         return path
@@ -606,6 +609,7 @@ class MkvAnalyzer():
         if (json_data.get("tracks") is not None):
             for track in json_data["tracks"]:
                 if track["type"] == "subtitles":
+                    LOG.debug(f'Subtitles found for {video_path}')
                     self._analyze_sub_track(track, video_path)
 
     def _analyze_sub_track(self, track: dict, video_path: str) -> None:
