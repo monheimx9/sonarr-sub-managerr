@@ -447,6 +447,15 @@ def build_track_flags(track: TrackInfo) -> str:
     return fullstring
 
 
+def sync_subtitles(ref: str, unsync: str) -> str:
+    sync_path = os.path.join(TEMP_FOLDER, '/subs/')
+    if not os.path.exists(sync_path):
+        os.makedirs(sync_path)
+    cmd = f'ffsubsync \"{ref}\" -i \"{unsync}\" \"{sync_path}\"'
+    subprocess.run(cmd, shell=True, check=True)
+    return sync_path
+
+
 class Episode():
     def __init__(self):
         self._serie_id = ""
