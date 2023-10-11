@@ -3,7 +3,7 @@ import argparse
 # from iso639 import Lang
 # from pysubparser import parser
 # import ass
-from episodus import Episode, subtitle_export_name
+from episodus import Episode, SubSync, subtitle_export_name
 from episodus import MkvAnalyzer
 from episodus import Sonarr
 from episodus import Subtitles
@@ -81,6 +81,7 @@ def export_ep(ep_path: str,
         ep.delete_temp()
         if to_remux:
             subs.compare_with_mkv(mkv.subs)
+            synced = SubSync(mkv.subs, subs.subs_list)
             mkv.import_tracks(subs.subs_list)
 
 

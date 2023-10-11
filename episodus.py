@@ -456,6 +456,12 @@ def sync_subtitles(ref: str, unsync: str) -> str:
     return sync_path
 
 
+class SubSync():
+    def __init__(self, ref: list[TrackInfo], unsync: list[TrackInfo]):
+        self._ref: list[TrackInfo] = ref
+        self._un: list[TrackInfo] = unsync
+
+
 class Episode():
     def __init__(self):
         self._serie_id = ""
