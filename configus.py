@@ -1,4 +1,5 @@
 import logging
+import os
 
 logger = logging.getLogger('submanagerr')
 handler = logging.FileHandler('logs.log')
@@ -14,7 +15,7 @@ logger.setLevel(logging.DEBUG)
 CONF_LOGGER = logger
 CONF_SONARR_HOST_URL = 'http://10.100.3.2:8989'
 CONF_SONARR_API = '6339d80ef2354a8dbdf3ce8fd4528d4d'
-CONF_TEMP_FOLDER = './temp/'
+CONF_TEMP_FOLDER = os.path.dirname(os.path.abspath(__file__))+'/temp/'
 CONF_GRABING_FOLDER = "./grabs/"
 CONF_SUBTITLE_PATH = "/home/monheim/Documents/subtitles/"
 CONF_PROGRESS_FOLDER = './progress/current.txt'

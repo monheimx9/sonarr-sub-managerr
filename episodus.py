@@ -27,19 +27,19 @@ LOG = configus.CONF_LOGGER
 
 @dataclass
 class TrackInfo:
-    trackId: Optional[str] = None
-    basedir: Optional[str] = None
-    filename: Optional[str] = None
-    filepath: Optional[str] = None
+    trackId: Optional[str] = ''
+    basedir: Optional[str] = ''
+    filename: Optional[str] = ''
+    filepath: Optional[str] = ''
     is_default: Optional[bool] = False
     is_forced: Optional[bool] = False
-    season: Optional[str] = None
-    episode: Optional[str] = None
-    trackname: Optional[str] = None
+    season: Optional[str] = ''
+    episode: Optional[str] = ''
+    trackname: Optional[str] = ''
     release: Optional[str] = 'Anonymous'
-    subtype: Optional[str] = None
-    language_ietf: Optional[str] = None
-    to_remux: Optional[bool] = None
+    subtype: Optional[str] = ''
+    language_ietf: Optional[str] = ''
+    to_remux: Optional[bool] = False
     is_sdh: Optional[bool] = False
     delay_ms: int = 0
 
@@ -448,18 +448,39 @@ def build_track_flags(track: TrackInfo) -> str:
 
 
 def sync_subtitles(ref: str, unsync: str) -> str:
-    sync_path = os.path.join(TEMP_FOLDER, '/subs/')
+    sync_path = f'{TEMP_FOLDER}subs/synced{os.path.splitext(unsync)[1]}'
     if not os.path.exists(sync_path):
         os.makedirs(sync_path)
-    cmd = f'ffsubsync \"{ref}\" -i \"{unsync}\" \"{sync_path}\"'
+    cmd = f'ffsubsync \"{ref}\" -i \"{unsync}\" -o \"{sync_path}\"'
+    LOG.debug(cmd)
     subprocess.run(cmd, shell=True, check=True)
-    return sync_path
+    synced = f'{sync_path}.{os.path.basename(unsync)}'
+    return synced
+
+
+def export(video_file: str, track_id: str | int, path: str) -> str:
+    cmd = [
+        f"mkvextract tracks \"{video_file}\" {str(track_id)}:\"{path}\""]
+    LOG.debug(cmd)
+    subprocess.run(cmd, shell=True, check=True)
+    return path
 
 
 class SubSync():
-    def __init__(self, ref: list[TrackInfo], unsync: list[TrackInfo]):
-        self._ref: list[TrackInfo] = ref
+    def __init__(self, refmkv: list[TrackInfo], unsync: list[TrackInfo]):
+        self._ref: list[TrackInfo] = refmkv
         self._un: list[TrackInfo] = unsync
+        reflang: list[str] = []
+        refpath = f'{TEMP_FOLDER}subs/ref'
+        for r in refmkv:
+            reflang.append(str(r.language_ietf))
+        for t in unsync:
+            lng_match = langcodes.closest_match(str(t.language_ietf), reflang)
+            for r in refmkv:
+                if r.language_ietf in lng_match:
+                    ref = export(str(r.filepath), str(r.trackId),
+                                 f'{refpath}.{str(r.subtype)}')
+                    t.filepath = sync_subtitles(ref, str(t.filepath))
 
 
 class Episode():
@@ -629,6 +650,7 @@ class MkvAnalyzer():
 
     def _analyze_sub_track(self, track: dict, video_path: str) -> None:
         s = TrackInfo()
+        s.filepath = video_path
         track_props = track["properties"]
         sub_type = track_props.get("codec_id")
         sub_type_extention = extension(sub_type)
@@ -698,7 +720,7 @@ class MkvAnalyzer():
     def export(self, video_file: str, track_id: str | int, path: str) -> str:
         cmd = [
             f"mkvextract tracks \"{video_file}\" {str(track_id)}:\"{path}\""]
-        print(cmd)
+        LOG.debug(cmd)
         subprocess.run(cmd, shell=True, check=True)
         return path
 
