@@ -64,23 +64,31 @@ def export_ep(ep_path: str,
     subs.analyze_folder(subs_folder)
     ep.video_path = ep_path
     if mkv.identify(ep_path):
-        mkv.analyze()
-        if mkv.too_big:
-            video_path = ep.copy_temp()
-        else:
-            video_path = ep.video_path
-        for t in mkv.subs:
-            t.release = rel_group
-            t.episode = ep_num
-            t.season = season
-            sub_path_full = (f"{subs_folder}{subtitle_export_name(t)}")
-            mkv.export(video_path, str(t.trackId), sub_path_full)
-            # if not args.all or args.reset, only on standard queue
-        ep.delete_temp()
+        if mkv.analyze():
+            if mkv.too_big:
+                video_path = ep.copy_temp()
+            else:
+                video_path = ep.video_path
+            for t in mkv.subs:
+                t.release = rel_group
+                t.episode = ep_num
+                t.season = season
+                sub_path_full = (f"{subs_folder}{subtitle_export_name(t)}")
+                mkv.export(video_path, str(t.trackId), sub_path_full)
+                # if not args.all or args.reset, only on standard queue
+            ep.delete_temp()
         if to_remux:
+            ok = False
             subs.compare_with_mkv(mkv.subs)
-            synced = SubSync(mkv.subs, subs.subs_list)
-            mkv.import_tracks(synced.syncronized)
+            for s in subs.subs_list:
+                if s.to_remux:
+                    ok = True
+                    break
+            if ok:
+                synced = SubSync(mkv.subs, subs.subs_list)
+                mkv.import_tracks(synced.syncronized)
+            else:
+                LOG.info('There is not track(s) to remux')
 
 
 def get_sonarr_var(data_file_path):

@@ -646,8 +646,9 @@ class MkvAnalyzer():
         track_number = len(self.__subs)
         return size_in_mb > 400 or track_number > 2
 
-    def analyze(self, json_data: dict = {}, video_path: str = "") -> None:
+    def analyze(self, json_data: dict = {}, video_path: str = "") -> bool:
         self.__subs = []
+        subfounds = False
         if not json_data:
             json_data = self._tracks
         if video_path == "":
@@ -655,8 +656,13 @@ class MkvAnalyzer():
         if (json_data.get("tracks") is not None):
             for track in json_data["tracks"]:
                 if track["type"] == "subtitles":
-                    LOG.debug(f'Subtitles found for {video_path}')
+                    subfounds = True
                     self._analyze_sub_track(track, video_path)
+        if subfounds:
+            LOG.debug(f'Subtitles found for {video_path}')
+        else:
+            LOG.debug(f'No subtitle tracks for {video_path}')
+        return subfounds
 
     def _analyze_sub_track(self, track: dict, video_path: str) -> None:
         s = TrackInfo()
