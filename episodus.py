@@ -644,7 +644,7 @@ class MkvAnalyzer():
         size_in_bytes = os.path.getsize(self._video_path)
         size_in_mb = int(size_in_bytes / (1024 * 1024))
         track_number = len(self.__subs)
-        return size_in_mb > 400 or track_number > 2
+        return size_in_mb > 200 and track_number > 2
 
     def analyze(self, json_data: dict = {}, video_path: str = "") -> bool:
         self.__subs = []
@@ -704,7 +704,7 @@ class MkvAnalyzer():
     def identify(self, video_file: str) -> bool:
         json_data = ""
         cmd = [f"mkvmerge -i -J \"{video_file}\""]
-        print(cmd)
+        LOG.debug(cmd)
         proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
         json_data, err = proc.communicate()
         json_data = json_data.decode("utf-8")
@@ -728,9 +728,10 @@ class MkvAnalyzer():
     def guess_lang_harder(self, video_file, track_id, sub_extention):
         text_subs = ['ass', 'ssa', 'srt']
         result = ""
+        tempy = f'{TEMP_FOLDER}subid.{sub_extention}'
         if sub_extention in text_subs:
-            sub_path = self.export(video_file, track_id,
-                                   "./caca" + sub_extention)
+            sub_path = self.export(video_file, track_id, tempy)
+        result = identify_lang_in_dialog(sub_path)
         return result
 
     def export(self, video_file: str, track_id: str | int, path: str) -> str:
