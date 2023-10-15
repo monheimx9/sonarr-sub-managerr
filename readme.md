@@ -57,7 +57,7 @@ By default **unmonitored** episodes aren't treated, not in full export, nor when
 - [ ] Correct mkv properties with mkvpropedit if language is undefined and can be identified
 - [x] Choose between only export or remux with new upgraded episode -m (--re**m**ux)
 - [x] Export external tracks already present in the season folder -x (--e**x**ternal)
-- [ ] Re-sync subtitles with [ffsubsync](https://github.com/smacke/ffsubsync)
+- [x] Re-sync subtitles with [ffsubsync](https://github.com/smacke/ffsubsync)
 - [ ] Parse subtitles files to guess language
 
 ## Knows issues and caveats
@@ -73,4 +73,6 @@ So be aware that it hasn't been tested with PLEX
 
 At this day 09/19/2023, it has only been tested with Sonarr 3.0.10.1567
 I'm not planning to move to Sonarr 4 until a stable version is out
+
+It hasn't been tested on Windows, and I'm pretty sure it won't work in this state
 
