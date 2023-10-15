@@ -76,13 +76,11 @@ def export_ep(ep_path: str,
             sub_path_full = (f"{subs_folder}{subtitle_export_name(t)}")
             mkv.export(video_path, str(t.trackId), sub_path_full)
             # if not args.all or args.reset, only on standard queue
-            # eport temp subtitle track for syncronization with ffsubsync
-            # remux prev external subs with new video and try to sync new subs
         ep.delete_temp()
         if to_remux:
             subs.compare_with_mkv(mkv.subs)
             synced = SubSync(mkv.subs, subs.subs_list)
-            mkv.import_tracks(subs.subs_list)
+            mkv.import_tracks(synced.syncronized)
 
 
 def get_sonarr_var(data_file_path):

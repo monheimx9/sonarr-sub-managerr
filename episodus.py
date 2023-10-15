@@ -395,7 +395,7 @@ def read_ass_dialogs(ass_events) -> str:
     try:
         all_events = read_ass(ass_events).events
         dialog_list = []
-        limit_line = 150
+        limit_line = 400
         current_line = 0
         for dialog_line in all_events:
             dialog_list.append(dialog_line.text)
@@ -448,14 +448,16 @@ def build_track_flags(track: TrackInfo) -> str:
 
 
 def sync_subtitles(ref: str, unsync: str) -> str:
-    sync_path = f'{TEMP_FOLDER}subs/synced{os.path.splitext(unsync)[1]}'
-    if not os.path.exists(sync_path):
-        os.makedirs(sync_path)
-    cmd = f'ffsubsync \"{ref}\" -i \"{unsync}\" -o \"{sync_path}\"'
+    sync_path = f'{TEMP_FOLDER}subs/synced.{os.path.basename(unsync)}'
+    tempdir = f'{TEMP_FOLDER}subs/'
+    if not os.path.exists(tempdir):
+        os.makedirs(tempdir)
+    ext = os.path.splitext(unsync)[1]
+    cmd = f'ffsubsync ref.ass -i \"{os.path.basename(unsync)}\" -o s{ext}'
     LOG.debug(cmd)
-    subprocess.run(cmd, shell=True, check=True)
-    synced = f'{sync_path}.{os.path.basename(unsync)}'
-    return synced
+    subprocess.run(cmd, shell=True, check=True, cwd=tempdir)
+    shutil.move(f'{tempdir}s{ext}', sync_path)
+    return sync_path
 
 
 def export(video_file: str, track_id: str | int, path: str) -> str:
@@ -475,12 +477,20 @@ class SubSync():
         for r in refmkv:
             reflang.append(str(r.language_ietf))
         for t in unsync:
-            lng_match = langcodes.closest_match(str(t.language_ietf), reflang)
-            for r in refmkv:
-                if r.language_ietf in lng_match:
-                    ref = export(str(r.filepath), str(r.trackId),
-                                 f'{refpath}.{str(r.subtype)}')
-                    t.filepath = sync_subtitles(ref, str(t.filepath))
+            if t.to_remux:
+                t.filepath = shutil.copy(t.filepath, f'{TEMP_FOLDER}subs/')
+                lng_match = langcodes.closest_match(
+                    str(t.language_ietf), reflang)
+                for r in refmkv:
+                    if r.language_ietf in lng_match:
+                        ref = export(str(r.filepath), str(r.trackId),
+                                     f'{refpath}.{str(r.subtype)}')
+                        t.filepath = sync_subtitles(ref, str(t.filepath))
+                        break
+
+    @property
+    def syncronized(self) -> list[TrackInfo]:
+        return self._un
 
 
 class Episode():
