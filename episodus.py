@@ -447,16 +447,19 @@ def build_track_flags(track: TrackInfo) -> str:
     return fullstring
 
 
-def sync_subtitles(ref: str, unsync: str) -> str:
-    sync_path = f'{TEMP_FOLDER}subs/synced.{os.path.basename(unsync)}'
-    tempdir = f'{TEMP_FOLDER}subs/'
-    if not os.path.exists(tempdir):
-        os.makedirs(tempdir)
+def sync_subtitles(ref: str, unsync: str, cwdir: str = '') -> str:
+    bname = os.path.basename(unsync)
+    refbname = os.path.basename(ref)
+    sync_path = f'{TEMP_FOLDER}subs/synced.{bname}'
+    if cwdir == '':
+        cwdir = f'{TEMP_FOLDER}subs/'
+    if not os.path.exists(cwdir):
+        os.makedirs(cwdir)
     ext = os.path.splitext(unsync)[1]
-    cmd = f'ffsubsync ref.ass -i \"{os.path.basename(unsync)}\" -o s{ext}'
+    cmd = f'ffsubsync {refbname} -i \"{bname}\" -o s{ext}'
     LOG.debug(cmd)
-    subprocess.run(cmd, shell=True, check=True, cwd=tempdir)
-    shutil.move(f'{tempdir}s{ext}', sync_path)
+    subprocess.run(cmd, shell=True, check=True, cwd=cwdir)
+    shutil.move(f'{cwdir}s{ext}', sync_path)
     return sync_path
 
 
@@ -492,6 +495,16 @@ class SubSync():
     @property
     def syncronized(self) -> list[TrackInfo]:
         return self._un
+
+    def del_temp(self) -> None:
+        temp_folder = f'{TEMP_FOLDER}subs/'
+        if os.path.exists(temp_folder) and os.path.isdir(temp_folder):
+            files = os.listdir(temp_folder)
+            if files:
+                for file in files:
+                    file_path = os.path.join(temp_folder, file)
+                    if os.path.isfile(file_path):
+                        os.remove(file_path)
 
 
 class Episode():
@@ -645,7 +658,7 @@ class MkvAnalyzer():
         size_in_bytes = os.path.getsize(self._video_path)
         size_in_mb = int(size_in_bytes / (1024 * 1024))
         track_number = len(self.__subs)
-        return size_in_mb > 200 and track_number > 2
+        return size_in_mb > 200 and track_number > 1
 
     def analyze(self, json_data: dict = {}, video_path: str = "") -> bool:
         self.__subs = []
@@ -728,7 +741,7 @@ class MkvAnalyzer():
 
     def guess_lang_harder(self, video_file, track_id, sub_extention):
         text_subs = ['ass', 'ssa', 'srt']
-        result = ""
+        result = "und"
         tempy = f'{TEMP_FOLDER}subid.{sub_extention}'
         if sub_extention in text_subs:
             sub_path = self.export(video_file, track_id, tempy)

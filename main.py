@@ -87,6 +87,7 @@ def export_ep(ep_path: str,
             if ok:
                 synced = SubSync(mkv.subs, subs.subs_list)
                 mkv.import_tracks(synced.syncronized)
+                synced.del_temp()
             else:
                 LOG.info('There is not track(s) to remux')
 
