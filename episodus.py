@@ -475,14 +475,15 @@ class SubSync():
         reflang: list[str] = []
         refpath = f'{TEMP_FOLDER}subs/ref'
         for r in refmkv:
-            reflang.append(str(r.language_ietf))
+            reflang.append(str(r.language_ietf)[:2])
         for t in unsync:
             if t.to_remux:
-                t.filepath = shutil.copy(t.filepath, f'{TEMP_FOLDER}subs/')
+                t.filepath = shutil.copy(
+                    str(t.filepath), f'{TEMP_FOLDER}subs/')
                 lng_match = langcodes.closest_match(
-                    str(t.language_ietf), reflang)
+                    str(t.language_ietf)[:2], reflang)
                 for r in refmkv:
-                    if r.language_ietf in lng_match:
+                    if r.language_ietf in lng_match or 'und' in lng_match:
                         ref = export(str(r.filepath), str(r.trackId),
                                      f'{refpath}.{str(r.subtype)}')
                         t.filepath = sync_subtitles(ref, str(t.filepath))
@@ -731,7 +732,7 @@ class MkvAnalyzer():
         tempy = f'{TEMP_FOLDER}subid.{sub_extention}'
         if sub_extention in text_subs:
             sub_path = self.export(video_file, track_id, tempy)
-        result = identify_lang_in_dialog(sub_path)
+            result = identify_lang_in_dialog(sub_path)
         return result
 
     def export(self, video_file: str, track_id: str | int, path: str) -> str:
