@@ -95,6 +95,7 @@ def extension(sub_type) -> str:
         sub_type: The subtitle type.
     """
     sub_extension = ""
+    sub_type = sub_type.upper()
     if "PGS" in sub_type:
         sub_extension = "sup"
     elif "ASS" in sub_type:
@@ -109,6 +110,8 @@ def extension(sub_type) -> str:
         sub_extension = "usf"
     elif "WEBVTT" in sub_type:
         sub_extension = "vtt"
+    elif "TIMED TEXT" in sub_type:
+        sub_extension = "ttml"
     return sub_extension
 
 
@@ -679,41 +682,44 @@ class MkvAnalyzer():
         return subfounds
 
     def _analyze_sub_track(self, track: dict, video_path: str) -> None:
-        s = TrackInfo()
-        s.filepath = video_path
-        track_props = track["properties"]
-        sub_type = track_props.get("codec_id")
-        sub_type_extention = extension(sub_type)
-        track_id = track["id"]
-        track_name = track_props.get("track_name", "und")
-        track_name = track_name.replace(r"/", "#")
-        is_forced = track_props.get("forced_track", False)
-        if track_name != "und" and not is_forced:
-            is_forced = check_forced(track_name)
-        track_lang_ietf = track_props.get("language_ietf", "und")
-        if track_lang_ietf != "und":
-            track_lang = track_lang_ietf
-        else:
-            track_lang = track_props.get("language", "und")
-        if track_lang == "und":
-            track_lang = self.guess_lang(track_name)
-        if track_lang == "und" or not track_lang:
-            track_lang = self.guess_lang_harder(video_path,
-                                                track_id,
-                                                sub_type_extention)
-        if track_lang != "und" and track_name == "und":
-            track_name = (f"{Language.get(track_lang).display_name()} # "
-                          f"{Language.get(track_lang).display_name(track_lang)}")
-        if track_lang != "und":
-            if DEFAULT_LANG in track_lang:
-                s.is_default = True
-        track_lang = standardize_tag(track_lang)
-        s.trackId = track_id
-        s.subtype = sub_type_extention
-        s.trackname = track_name
-        s.is_forced = is_forced
-        s.language_ietf = track_lang
-        self.__subs.append(s)
+        try:
+            s = TrackInfo()
+            s.filepath = video_path
+            track_props = track["properties"]
+            sub_type = track_props.get("codec_id", track.get('codec'))
+            sub_type_extention = extension(sub_type)
+            track_id = track["id"]
+            track_name = track_props.get("track_name", "und")
+            track_name = track_name.replace(r"/", "#")
+            is_forced = track_props.get("forced_track", False)
+            if track_name != "und" and not is_forced:
+                is_forced = check_forced(track_name)
+            track_lang_ietf = track_props.get("language_ietf", "und")
+            if track_lang_ietf != "und":
+                track_lang = track_lang_ietf
+            else:
+                track_lang = track_props.get("language", "und")
+            if track_lang == "und":
+                track_lang = self.guess_lang(track_name)
+            if track_lang == "und" or not track_lang:
+                track_lang = self.guess_lang_harder(video_path,
+                                                    track_id,
+                                                    sub_type_extention)
+            if track_lang != "und" and track_name == "und":
+                track_name = (f"{Language.get(track_lang).display_name()} # "
+                              f"{Language.get(track_lang).display_name(track_lang)}")
+            if track_lang != "und":
+                if DEFAULT_LANG in track_lang:
+                    s.is_default = True
+            track_lang = standardize_tag(track_lang)
+            s.trackId = track_id
+            s.subtype = sub_type_extention
+            s.trackname = track_name
+            s.is_forced = is_forced
+            s.language_ietf = track_lang
+            self.__subs.append(s)
+        except Exception as e:
+            LOG.error(f'Can\'t dertermine subtitle {e}')
 
     def identify(self, video_file: str) -> bool:
         json_data = ""
@@ -749,11 +755,15 @@ class MkvAnalyzer():
         return result
 
     def export(self, video_file: str, track_id: str | int, path: str) -> str:
-        cmd = [
-            f"mkvextract tracks \"{video_file}\" {str(track_id)}:\"{path}\""]
-        LOG.debug(cmd)
-        subprocess.run(cmd, shell=True, check=True)
-        return path
+        try:
+            cmd = [
+                f"mkvextract tracks \"{video_file}\" {str(track_id)}:\"{path}\""]
+            LOG.debug(cmd)
+            subprocess.run(cmd, shell=True, check=True)
+            return path
+        except Exception as e:
+            LOG.error(f'Could not export track: {e}')
+            return path
 
     def import_tracks(self, track_list: list[TrackInfo]):
         mkv_path: str = self._video_path
