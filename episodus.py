@@ -522,7 +522,7 @@ class Episode():
         self._video_path = ""
         self._serie_path = ""
         self._sonarr_var = None
-        self.release = ""
+        self._release = ""
         self.tvdbid = ""
         self._copy_temp_path = ""
         self._temp_folder = TEMP_FOLDER
@@ -550,6 +550,17 @@ class Episode():
     @ep_id.setter
     def ep_id(self, id: int | str):
         self._ep_id = str(id)
+
+    @property
+    def release(self) -> str:
+        if self._release == 'None' or self._release == '':
+            return 'Anonymous'
+        else:
+            return self._release
+
+    @release.setter
+    def release(self, rel: str):
+        self._release = rel
 
     @property
     def temp_path(self) -> str:
