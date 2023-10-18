@@ -76,3 +76,5 @@ I'm not planning to move to Sonarr 4 until a stable version is out
 
 It hasn't been tested on Windows, and I'm pretty sure it won't work in this state
 
+mkvmerge doesn't like quotes in path or name, be aware that this will crash the program
+
