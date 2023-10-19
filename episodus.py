@@ -490,10 +490,11 @@ class SubSync():
                     str(t.language_ietf)[:2], reflang)
                 for r in refmkv:
                     if r.language_ietf in lng_match or 'und' in lng_match:
-                        ref = export(str(r.filepath), str(r.trackId),
-                                     f'{refpath}.{str(r.subtype)}')
-                        t.filepath = sync_subtitles(ref, str(t.filepath))
-                        break
+                        if r.is_forced == t.is_forced:
+                            ref = export(str(r.filepath), str(r.trackId),
+                                         f'{refpath}.{str(r.subtype)}')
+                            t.filepath = sync_subtitles(ref, str(t.filepath))
+                            break
 
     @property
     def syncronized(self) -> list[TrackInfo]:
@@ -636,7 +637,7 @@ class Episode():
         self.release = value.get("sonarr_episodefile_releasegroup")
         self._serie_id = value.get("sonarr_series_id")
         self._ep_id = value.get("sonarr_episodefile_episodeids")
-        self._serie_title = value("sonarr_series_title")
+        self._serie_title = value.get("sonarr_series_title")
 
     def copy_temp(self) -> str:
         LOG.debug(f'Make temp copy of {self._video_path}')
