@@ -261,7 +261,7 @@ def ask_user_input(header: dict, parsed_name: dict,
     t = TrackInfo()
     if not guess:
         while True:
-            t.subtype = parsed_name.get('subtype')
+            t.subtype = parsed_name.get('subtype', '')
             print(parsed_name.get('filename'))
             t.is_forced = parsed_name.get('forced', False)
             print(f'Is "Forced track" correct ? Forced is {t.is_forced}')
@@ -289,7 +289,7 @@ def ask_user_input(header: dict, parsed_name: dict,
                 txt = 'Write your own Track Name : '
                 t.trackname = option_selector(key_list, val_list, txt)
                 print(f'Track Name is now : {t.trackname}')
-            t.language_ietf = parsed_name.get('tracklang')
+            t.language_ietf = parsed_name.get('tracklang', '')
             print(
                 f'Is Track Language correct ? : Language is {t.language_ietf}')
             print(f'Identified language in subtitle file is : '
@@ -302,12 +302,12 @@ def ask_user_input(header: dict, parsed_name: dict,
             if not choice.lower().startswith('n'):
                 break
     else:
-        t.subtype = parsed_name.get('subtype')
+        t.subtype = parsed_name.get('subtype', '')
         t.is_forced = parsed_name.get('forced', False)
         t.is_default = parsed_name.get('default', False)
         t.is_sdh = parsed_name.get('cc', False)
         t.trackname = parsed_name.get('trackname', header.get('title', 'und'))
-        t.language_ietf = parsed_name.get('tracklang')
+        t.language_ietf = parsed_name.get('tracklang', '')
     LOG.debug(subtitle_export_name(t))
     return t
 
