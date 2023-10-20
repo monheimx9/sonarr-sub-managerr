@@ -24,10 +24,14 @@ def export_all_from_sonarr():
     sonarr = Sonarr(export_external_tracks)
     all_series = sonarr.series
     already_done = read_progress_sonarr()
+    current_serie: int = 0
+    total_series: int = len(all_series)
     for serie in all_series:
+        current_serie += 1
         serie_id = serie.get("id")
         serie_tvid = serie.get("tvdbId")
         if str(serie_id) not in already_done:
+            LOG.info(f'Current serie progress: {current_serie}/{total_series}')
             ep_list = sonarr.episode_list(serie_id)
             LOG.info(f'Treating tvdbId: {serie_tvid} {serie.get("title")}')
             sonarr.external_tracks_guess_method(serie.get('path'))
@@ -123,7 +127,8 @@ def treat_queue_from_sonarr(source_folder) -> None:
             export_ep(ep.video_path, ep.tvdbid,
                       ep.number, ep.season, ep.release)
         LOG.debug(f'Removing {file_path_full}')
-        os.remove(file_path_full)
+        if os.path.exists(file_path_full):
+            os.remove(file_path_full)
 
 
 def save_progress_sonarr(serie_id: int | str) -> None:
