@@ -6,6 +6,7 @@ import re
 import shutil
 from langcodes import Language
 from langcodes import standardize_tag
+from langcodes import closest_match
 import langcodes
 import py3langid as langid
 from pyarr import SonarrAPI
@@ -486,15 +487,24 @@ class SubSync():
             if t.to_remux:
                 t.filepath = shutil.copy(
                     str(t.filepath), f'{TEMP_FOLDER}subs/')
-                lng_match = langcodes.closest_match(
-                    str(t.language_ietf)[:2], reflang)
+                lngstr = str(t.language_ietf)[:2]
+                lng_match = closest_match(lngstr, reflang, 100)
+                lngdiplay = Language.make(lng_match[0]).display_name()
+                LOG.debug(f'Closest matching language: \'{lngdiplay}\' '
+                          f'with distance {lng_match[1]}/100')
                 for r in refmkv:
                     if r.language_ietf in lng_match or 'und' in lng_match:
                         if r.is_forced == t.is_forced:
-                            ref = export(str(r.filepath), str(r.trackId),
-                                         f'{refpath}.{str(r.subtype)}')
-                            t.filepath = sync_subtitles(ref, str(t.filepath))
-                            break
+                            if 'sup' not in str(r.subtype):
+                                ref = export(str(r.filepath), str(r.trackId),
+                                             f'{refpath}.{str(r.subtype)}')
+                                try:
+                                    t.filepath = sync_subtitles(
+                                        ref, str(t.filepath))
+                                    break
+                                except Exception as e:
+                                    LOG.error(e)
+                                    break
 
     @property
     def syncronized(self) -> list[TrackInfo]:
