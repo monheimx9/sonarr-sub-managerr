@@ -28,18 +28,18 @@ LOG = configus.CONF_LOGGER
 
 @dataclass
 class TrackInfo:
-    trackId: Optional[str] = ''
-    basedir: Optional[str] = ''
-    filename: Optional[str] = ''
-    filepath: Optional[str] = ''
+    trackId: str = ''
+    basedir: str = ''
+    filename: str = ''
+    filepath: str = ''
     is_default: Optional[bool] = False
     is_forced: Optional[bool] = False
-    season: Optional[str] = ''
-    episode: Optional[str] = ''
-    trackname: Optional[str] = ''
-    release: Optional[str] = 'Anonymous'
-    subtype: Optional[str] = ''
-    language_ietf: Optional[str] = ''
+    season: str = ''
+    episode: str = ''
+    trackname: str = ''
+    release: str = 'Anonymous'
+    subtype: str = ''
+    language_ietf: str = ''
     to_remux: Optional[bool] = False
     is_sdh: Optional[bool] = False
     delay_ms: int = 0
@@ -482,12 +482,12 @@ class SubSync():
         reflang: list[str] = []
         refpath = f'{TEMP_FOLDER}subs/ref'
         for r in refmkv:
-            reflang.append(str(r.language_ietf)[:2])
+            reflang.append(str(r.language_ietf))
         for t in unsync:
             if t.to_remux:
                 t.filepath = shutil.copy(
                     str(t.filepath), f'{TEMP_FOLDER}subs/')
-                lngstr = str(t.language_ietf)[:2]
+                lngstr = str(t.language_ietf)
                 lng_match = closest_match(lngstr, reflang, 100)
                 lngdiplay = Language.make(lng_match[0]).display_name()
                 LOG.debug(f'Closest matching language: \'{lngdiplay}\' '
