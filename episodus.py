@@ -977,3 +977,9 @@ class Subtitles():
                     subtitle_track = parse_subtitle_filename(f_path)
                     self.__subs_list.append(subtitle_track)
         return self.subs_list
+
+
+if __name__ == "__main__":
+    # ffsubsync ref.ass -i "S04.E01.[Anonymous]-[Dialogues Français].fr-FR.srt" -o s.srt
+    sync_subtitles(
+        'ref.ass', "S04.E01.[Anonymous]-[Dialogues Français].fr-FR.srt")
