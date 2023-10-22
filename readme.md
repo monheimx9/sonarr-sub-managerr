@@ -58,7 +58,7 @@ By default **unmonitored** episodes aren't treated, not in full export, nor when
 - [x] Choose between only export or remux with new upgraded episode -m (--re**m**ux)
 - [x] Export external tracks already present in the season folder -x (--e**x**ternal)
 - [x] Re-sync subtitles with [ffsubsync](https://github.com/smacke/ffsubsync)
-- [ ] Parse subtitles files to guess language
+- [x] Parse subtitles files to guess language
 
 ## Knows issues and caveats
 Sometimes it happen that you might have one video file that covers multiple episodes (like a Kai version or a special release)
