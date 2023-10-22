@@ -426,16 +426,20 @@ def read_srt_dialogs(content: str) -> str:
 
 
 def read_sub_file(sub_path: str) -> str:
-    num_lines: int = 400
-    with open(sub_path, 'r') as file:
-        file_content = ""
-        lines_read = 0
-        for line in file:
-            file_content += line
-            lines_read += 1
-            if num_lines is not None and lines_read >= num_lines:
-                break
-        return file_content
+    try:
+        num_lines: int = 400
+        with open(sub_path, 'r') as file:
+            file_content = ""
+            lines_read = 0
+            for line in file:
+                file_content += line
+                lines_read += 1
+                if num_lines is not None and lines_read >= num_lines:
+                    break
+            return file_content
+    except Exception as e:
+        LOG.error(e)
+        return ''
 
 
 def build_track_flags(track: TrackInfo) -> str:
