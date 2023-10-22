@@ -80,7 +80,7 @@ class AudioTrackInfo(TrackInfo):
 
 
 def check_forced(track_name: str) -> bool:
-    keywords = ["signs", "songs", "forc"]
+    keywords = ["signs", "songs", "forc", "s&s"]
     track_name_lower = track_name.lower()
     forced = (
         "forced." if any(
