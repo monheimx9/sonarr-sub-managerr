@@ -455,7 +455,8 @@ def build_track_flags(track: TrackInfo) -> str:
     return fullstring
 
 
-def sync_subtitles(ref: str, unsync: str, cwdir: str = '') -> str:
+def sync_subtitles(ref: str, unsync: str,
+                   cwdir: str = '') -> str:
     bname = os.path.basename(unsync)
     refbname = os.path.basename(ref)
     sync_path = f'{TEMP_FOLDER}subs/synced.{bname}'
@@ -466,9 +467,32 @@ def sync_subtitles(ref: str, unsync: str, cwdir: str = '') -> str:
     ext = os.path.splitext(unsync)[1]
     cmd = f'ffsubsync {refbname} -i \"{bname}\" -o s{ext}'
     LOG.debug(cmd)
-    subprocess.run(cmd, shell=True, check=True, cwd=cwdir)
-    shutil.move(f'{cwdir}s{ext}', sync_path)
-    return sync_path
+    out = subprocess.run(cmd, shell=True, check=True,
+                         cwd=cwdir, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE, text=True)
+    out_txt = f'{out.stdout}{out.stderr}'
+    LOG.info(out_txt)
+    if check_sync_offset(out_txt):
+        shutil.move(f'{cwdir}s{ext}', sync_path)
+        return sync_path
+    else:
+        return unsync
+
+
+def check_sync_offset(out: str) -> bool:
+    pattern = r'offset seconds: (-?\d+\.\d+)'
+    matchre = re.search(pattern, out)
+    offset: float = 0.0
+    if matchre:
+        offset: float = float(matchre.group(1))
+        if offset < -2.0 or offset > 2.0:
+            LOG.warning('Subtitles won\' be syncronized due too big offset'
+                        ' it might be a mistake')
+            return False
+        else:
+            return True
+    else:
+        return False
 
 
 def export(video_file: str, track_id: str | int, path: str) -> str:
