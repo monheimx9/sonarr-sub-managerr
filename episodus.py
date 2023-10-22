@@ -901,7 +901,7 @@ class Sonarr():
             ep.number = sonarr_ep.get('episodeNumber')
             ep.video_path = sonarr_ep['episodeFile'].get('path')
             ep.serie_path = sonarr_ep['series'].get('path')
-            ep.release = sonarr_ep['episodeFile'].get('releaseGroup')
+            ep.release = sonarr_ep['episodeFile'].get('releaseGroup', '')
             if self._bool_export_ext_tracks:
                 self._ep = ep
                 self._list_ext_tracks(ep.video_path)
