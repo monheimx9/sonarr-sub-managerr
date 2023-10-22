@@ -504,7 +504,9 @@ def export(video_file: str, track_id: str | int, path: str) -> str:
 
 
 class SubSync():
-    def __init__(self, refmkv: list[TrackInfo], unsync: list[TrackInfo]):
+    def __init__(self, refmkv: list[TrackInfo],
+                 unsync: list[TrackInfo],
+                 vpath: str):
         self._ref: list[TrackInfo] = refmkv
         self._un: list[TrackInfo] = unsync
         reflang: list[str] = []
@@ -524,7 +526,7 @@ class SubSync():
                     if r.language_ietf in lng_match or 'und' in lng_match:
                         if r.is_forced == t.is_forced:
                             if 'sup' not in str(r.subtype):
-                                ref = export(str(r.filepath), str(r.trackId),
+                                ref = export(vpath, str(r.trackId),
                                              f'{refpath}.{str(r.subtype)}')
                                 try:
                                     t.filepath = sync_subtitles(
@@ -711,7 +713,7 @@ class MkvAnalyzer():
         size_in_bytes = os.path.getsize(self._video_path)
         size_in_mb = int(size_in_bytes / (1024 * 1024))
         track_number = len(self.__subs)
-        return size_in_mb > 200 and track_number > 1
+        return size_in_mb > 200 or track_number > 1
 
     def analyze(self, json_data: dict = {}, video_path: str = "") -> bool:
         self.__subs = []
@@ -815,10 +817,10 @@ class MkvAnalyzer():
             LOG.error(f'Could not export track: {e}')
             return path
 
-    def import_tracks(self, track_list: list[TrackInfo]):
-        mkv_path: str = self._video_path
+    def import_tracks(self, track_list: list[TrackInfo], vpath: str):
+        mkv_path: str = vpath
         mkv_name: str = os.path.basename(mkv_path)
-        temp_dir: str = os.path.join(self._temp_folder, mkv_name)
+        temp_dir: str = os.path.join(self._temp_folder, 'import/', mkv_name)
         i: int = 0
         cmd: str = f'mkvmerge -o \"{temp_dir}\" \"{mkv_path}\"'
         for t in track_list:
@@ -829,7 +831,8 @@ class MkvAnalyzer():
             LOG.debug(f'Muxing new track(s) into {self._video_path}')
             LOG.debug(cmd)
             subprocess.run(cmd, shell=True, check=True)
-            shutil.copy(temp_dir, os.path.dirname(mkv_path))
+            shutil.copy(temp_dir, os.path.dirname(self._video_path))
+            os.remove(temp_dir)
 
 
 class Sonarr():
