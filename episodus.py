@@ -851,12 +851,24 @@ class Sonarr():
 
     def external_tracks_guess_method(self, folder: str = ''):
         if self._bool_export_ext_tracks:
-            print('You can let the program guess every flags for the'
-                  'external tracks, are you sure of the file organisation?')
-            print(f'Check folder: {folder}')
-            method = input('[y/N]: ')
-            if method.lower().startswith('y'):
-                self._guess_ext_tracks = True
+            if self._test_external_tracks(folder):
+                print('You can let the program guess every flags for the'
+                      'external tracks, are you sure of the file organisation?')
+                print(f'Check folder: {folder}')
+                method = input('[y/N]: ')
+                if method.lower().startswith('y'):
+                    self._guess_ext_tracks = True
+
+    def _test_external_tracks(self, directory: str) -> bool:
+        root_directory = directory
+        valid_extensions = ['ass', 'ssa', 'srt', 'sub', 'sup']
+        f_list = []
+        for root, dirs, files in os.walk(root_directory):
+            for file in files:
+                file_name, file_extension = os.path.splitext(file)
+                if file_extension.lstrip('.').lower() in valid_extensions:
+                    f_list.append(file)
+        return True if len(f_list) > 0 else False
 
     @property
     def series(self) -> list:
