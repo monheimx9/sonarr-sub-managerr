@@ -80,7 +80,6 @@ def export_ep(ep_path: str,
                 sub_path_full = (f"{subs_folder}{subtitle_export_name(t)}")
                 mkv.export(video_path, str(t.trackId), sub_path_full)
                 # if not args.all or args.reset, only on standard queue
-            ep.delete_temp()
         if to_remux:
             ok = False
             subs.compare_with_mkv(mkv.subs)
@@ -89,11 +88,12 @@ def export_ep(ep_path: str,
                     ok = True
                     break
             if ok:
-                synced = SubSync(mkv.subs, subs.subs_list)
-                mkv.import_tracks(synced.syncronized)
+                synced = SubSync(mkv.subs, subs.subs_list, video_path)
+                mkv.import_tracks(synced.syncronized, video_path)
                 synced.del_temp()
             else:
                 LOG.info('There is not track(s) to remux')
+        ep.delete_temp()
 
 
 def get_sonarr_var(data_file_path):
