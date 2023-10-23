@@ -853,8 +853,9 @@ class Sonarr():
         if self._bool_export_ext_tracks:
             if self._test_external_tracks(folder):
                 print('You can let the program guess every flags for the'
-                      'external tracks, are you sure of the file organisation?')
-                print(f'Check folder: {folder}')
+                      ' external tracks, you can check the following dir')
+                print(f'Check directory: {folder}')
+                print('Let the program decide for you?')
                 method = input('[y/N]: ')
                 if method.lower().startswith('y'):
                     self._guess_ext_tracks = True
