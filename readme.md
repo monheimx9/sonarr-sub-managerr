@@ -23,7 +23,7 @@ The subtitles will be saved using that nomenclature
 
 */subtitles/305074/S03/E03/S03.E03.\[Tsundere-raws\]-\[Sous-titres complets ADN\].default.fr.ass*
 
-*/subtitles/375271/S01/E01/S01.E01\[EMBER\]-\[Signs & Songs-L.Y\].en.forced.ass*
+*/subtitles/375271/S01/E01/S01.E01.\[EMBER\]-\[Signs & Songs-L.Y\].en.forced.ass*
 
 I choose to export with the TvDbID as folder name rather than the SonarrID to avoid conflicts
 
@@ -59,6 +59,17 @@ By default **unmonitored** episodes aren't treated, not in full export, nor when
 - [x] Export external tracks already present in the season folder -x (--e**x**ternal)
 - [x] Re-sync subtitles with [ffsubsync](https://github.com/smacke/ffsubsync)
 - [x] Parse subtitles files to guess language
+- [x] Export specific serie by Sonarr serieID -S (--**s**erie)
+- [x] Export specific serie by The TvDbID -T (--tvdbid)
+
+## Examples of commands
+**-axm** will export all series, extract subtitles from season directories and remux them into the existing mkv containers
+
+**-gxm** will treat the queue of all recent import/upgrades and, extract subtitles from season directories and remux them
+
+**-mT 262098** will export the serie number 262098 from The TvDbID and remux subtitles if there are any in the collection
+
+**-mS** same as before, but with Sonarr serieID
 
 ## Knows issues and caveats
 Sometimes it happen that you might have one video file that covers multiple episodes (like a Kai version or a special release)
