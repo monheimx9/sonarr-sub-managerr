@@ -884,6 +884,11 @@ class Sonarr():
         LOG.debug(f'Get serie list from sonarr - Lenght: {len(series)}')
         return self._series
 
+    def serie(self, id: int, tvdbid: bool = False):
+        LOG.debug(f'Get serie from Sonarr: {id} / Is tvdbID={tvdbid}')
+        s = self._sonarr.get_series(id, tvdbid)
+        return s
+
     def episode_list(self, serie_id: int | str) -> list:
         self._serie_id = serie_id
         ep_list = self._sonarr.get_episode(serie_id, series=True)

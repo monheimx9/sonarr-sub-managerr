@@ -54,6 +54,21 @@ def export_all_from_sonarr():
             save_progress_sonarr(serie_id)
 
 
+def export_specific_serie(serieID: int, is_tvdbid: bool = False) -> None:
+    so = Sonarr()
+    s = so.serie(serieID, is_tvdbid)[0]
+    s_title = s.get('title')
+    s_path = s.get('path')
+    if is_tvdbid:
+        eps = so.episode_list(s.get('id'))
+        tvid = serieID
+    else:
+        eps = so.episode_list(serieID)
+        tvid = s.get('tvdbId')
+    export_episodes(eps, so, s_title, tvid, s_path)
+    save_progress_sonarr(serieID)
+
+
 def export_ep(ep_path: str,
               tvid: str,
               ep_num: str,
@@ -180,6 +195,10 @@ def main():
                      help='Remux external tracks to new video file')
     arg.add_argument('-x', '--external', action='store_true',
                      help='Export external tracks from season folder')
+    arg.add_argument('-S', '--serie', type=int, nargs=1,
+                     help='Extract a specific serie by sonarrID')
+    arg.add_argument('-T', '--tvdbid', type=int, nargs=1,
+                     help='Use tvdbId instead of SonarrID')
     args = arg.parse_args()
     if args.external:
         export_external_tracks = True
@@ -187,6 +206,12 @@ def main():
     if args.remux:
         to_remux = True
         LOG.info('Remuxing back to the new video is set to True')
+    if args.serie:
+        serieID: int = args.serie[0]
+        export_specific_serie(serieID, False)
+    if args.tvdbid:
+        tvdbId: int = args.tvdbid[0]
+        export_specific_serie(tvdbId, True)
     if args.reset:
         reset_progress_sonarr()
         export_all_from_sonarr()
