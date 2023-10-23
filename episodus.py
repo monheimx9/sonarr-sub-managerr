@@ -488,7 +488,13 @@ def check_sync_offset(out: str) -> bool:
         if offset < -2.0 or offset > 2.0:
             LOG.warning('Subtitles won\' be syncronized due too big offset'
                         ' it might be a mistake')
-            return False
+            LOG.warning('You can still force the syncronization '
+                        f'(current offset: {offset} seconds)')
+            yn = input('[y/N]: ')
+            if yn.lower().startswith('y'):
+                return True
+            else:
+                return False
         else:
             return True
     else:
