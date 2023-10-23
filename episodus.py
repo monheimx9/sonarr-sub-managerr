@@ -812,10 +812,10 @@ class MkvAnalyzer():
             result = identify_lang_in_dialog(sub_path)
         return result
 
-    def export(self, video_file: str, track_id: str | int, path: str) -> str:
+    def export(self, v_file: str, track_id: str | int, path: str) -> str:
         try:
             cmd = [
-                f"mkvextract tracks \"{video_file}\" {str(track_id)}:\"{path}\""]
+                f"mkvextract tracks \"{v_file}\" {str(track_id)}:\"{path}\""]
             LOG.debug(cmd)
             subprocess.run(cmd, shell=True, check=True)
             return path
