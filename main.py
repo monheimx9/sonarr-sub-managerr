@@ -33,24 +33,8 @@ def export_all_from_sonarr():
         if str(serie_id) not in already_done:
             LOG.info(f'Current serie progress: {current_serie}/{total_series}')
             ep_list = sonarr.episode_list(serie_id)
-            LOG.info(f'Treating tvdbId: {serie_tvid} {serie.get("title")}')
-            sonarr.external_tracks_guess_method(serie.get('path'))
-            for episode in ep_list:
-                monitored = episode.get("monitored")
-                if not monitored:
-                    LOG.info(
-                        f'S{episode.get("seasonNumber")}'
-                        f'E{episode.get("episodeNumber")} not monitored')
-                if monitored:
-                    ep_id = episode.get("id")
-                    ep = sonarr.episode(ep_id)
-                    if ep.file_exist:
-                        ep_path = ep.video_path
-                        season_num = ep.season
-                        ep_num = ep.number
-                        release = ep.release
-                        export_ep(ep_path, serie_tvid,
-                                  ep_num, season_num, release)
+            export_episodes(ep_list, sonarr, serie.get(
+                'title'), serie_tvid, serie.get('path'))
             save_progress_sonarr(serie_id)
 
 
@@ -67,6 +51,28 @@ def export_specific_serie(serieID: int, is_tvdbid: bool = False) -> None:
         tvid = s.get('tvdbId')
     export_episodes(eps, so, s_title, tvid, s_path)
     save_progress_sonarr(serieID)
+
+
+def export_episodes(ep_list, sonarr: Sonarr,
+                    s_title: str, tvid, s_path: str) -> None:
+    LOG.info(f'Treating tvdbId: {tvid} {s_title}')
+    sonarr.external_tracks_guess_method(s_path)
+    for episode in ep_list:
+        monitored = episode.get("monitored")
+        if not monitored:
+            LOG.info(
+                f'S{episode.get("seasonNumber")}'
+                f'E{episode.get("episodeNumber")} not monitored')
+        if monitored:
+            ep_id = episode.get("id")
+            ep = sonarr.episode(ep_id)
+            if ep.file_exist:
+                ep_path = ep.video_path
+                season_num = ep.season
+                ep_num = ep.number
+                release = ep.release
+                export_ep(ep_path, tvid,
+                          ep_num, season_num, release)
 
 
 def export_ep(ep_path: str,
@@ -95,20 +101,20 @@ def export_ep(ep_path: str,
                 sub_path_full = (f"{subs_folder}{subtitle_export_name(t)}")
                 mkv.export(video_path, str(t.trackId), sub_path_full)
                 # if not args.all or args.reset, only on standard queue
-        if to_remux:
-            ok = False
-            subs.compare_with_mkv(mkv.subs)
-            for s in subs.subs_list:
-                if s.to_remux:
-                    ok = True
-                    break
-            if ok:
-                synced = SubSync(mkv.subs, subs.subs_list, video_path)
-                mkv.import_tracks(synced.syncronized, video_path)
-                synced.del_temp()
-            else:
-                LOG.info('There is not track(s) to remux')
-        ep.delete_temp()
+            if to_remux:
+                ok = False
+                subs.compare_with_mkv(mkv.subs)
+                for s in subs.subs_list:
+                    if s.to_remux:
+                        ok = True
+                        break
+                if ok:
+                    synced = SubSync(mkv.subs, subs.subs_list, video_path)
+                    mkv.import_tracks(synced.syncronized, video_path)
+                    synced.del_temp()
+                else:
+                    LOG.info('There is not track(s) to remux')
+            ep.delete_temp()
 
 
 def get_sonarr_var(data_file_path):
