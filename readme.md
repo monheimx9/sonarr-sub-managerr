@@ -69,7 +69,7 @@ By default **unmonitored** episodes aren't treated, not in full export, nor when
 
 **-mT 262098** will export the serie number 262098 from The TvDbID and remux subtitles if there are any in the collection
 
-**-mS** same as before, but with Sonarr serieID
+**-mS 142** same as before, but with Sonarr serieID
 
 ## Knows issues and caveats
 Sometimes it happen that you might have one video file that covers multiple episodes (like a Kai version or a special release)
