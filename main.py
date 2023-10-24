@@ -40,17 +40,20 @@ def export_all_from_sonarr():
 
 def export_specific_serie(serieID: int, is_tvdbid: bool = False) -> None:
     so = Sonarr()
-    s = so.serie(serieID, is_tvdbid)[0]
-    s_title = s.get('title')
-    s_path = s.get('path')
     if is_tvdbid:
-        eps = so.episode_list(s.get('id'))
+        s = so.serie(serieID, is_tvdbid)[0]
+        s_id = s.get('id')
+        eps = so.episode_list(s_id)
         tvid = serieID
     else:
+        s = so.serie(serieID, is_tvdbid)
         eps = so.episode_list(serieID)
         tvid = s.get('tvdbId')
+        s_id = serieID
+    s_title = s.get('title')
+    s_path = s.get('path')
     export_episodes(eps, so, s_title, tvid, s_path)
-    save_progress_sonarr(serieID)
+    save_progress_sonarr(s_id)
 
 
 def export_episodes(ep_list, sonarr: Sonarr,
