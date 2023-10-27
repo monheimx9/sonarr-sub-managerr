@@ -1,0 +1,11 @@
+version: '3'
+services:
+  sonarr-subman:
+    image: sonarr-subman  # Use the name of your Docker image
+    container_name: sonarr-subman  # Set a container name
+    volumes:
+      - /POOL1/PLEX_LOCAL:/POOL1/PLEX_LOCAL
+      - /home/monheim/Documents/subtitles:/home/monheim/Documents/subtitles
+      - /home/monheim/Documents/proj/sonarr/sonarr_submoverr/grabs/:/app/grabs
+    stdin_open: true
+    tty: true
