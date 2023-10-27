@@ -1017,6 +1017,4 @@ class Subtitles:
 
 
 if __name__ == "__main__":
-    # ffsubsync ref.ass -i "S04.E01.[Anonymous]-[Dialogues Français].fr-FR.srt" -o s.srt
-    sync_subtitles(
-        "ref.ass", "S04.E01.[Anonymous]-[Dialogues Français].fr-FR.srt")
+    pass
