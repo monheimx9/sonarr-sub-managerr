@@ -400,6 +400,7 @@ def identify_lang_in_dialog(sub_path: str) -> str:
         identify = langid.classify(dialogs)[0]
     else:
         identify = "undefiend"
+    LOG.debug(f"Identified language={identify}")
     return str(identify)
 
 
@@ -458,8 +459,12 @@ def build_track_flags(track: TrackInfo) -> str:
     tf = f"--forced-display-flag {i}:{str(track.is_forced).lower()}"
     hi = f"--hearing-impaired-flag {i}:{str(track.is_sdh).lower()}"
     tl = f'--language {i}:"{track.language_ietf}"'
+    if track.delay_ms != 0:
+        sy = f"--sync {i}:{str(track.delay_ms)}"
+    else:
+        sy = ""
     file = f'"{str(track.filepath)}"'
-    fullstring = f"{td} {te} {tf} {hi} {tn} {tl} {file}"
+    fullstring = f"{td} {te} {tf} {hi} {tn} {tl} {sy} {file}"
     return fullstring
 
 
@@ -820,7 +825,7 @@ class MkvAnalyzer:
             track_lang = Language.find(track_name)
             return track_lang
         except LookupError:
-            print("Unable to determine language for subtitle track")
+            LOG.warning("Unable to determine language for subtitle track")
             return False
 
     def guess_lang_harder(self, video_file, track_id, sub_extention):
@@ -828,6 +833,7 @@ class MkvAnalyzer:
         result = "und"
         tempy = f"{TEMP_FOLDER}subid.{sub_extention}"
         if sub_extention in text_subs:
+            LOG.debug("Extracting subtitle track to indentify lang from text")
             sub_path = self.export(video_file, track_id, tempy)
             result = identify_lang_in_dialog(sub_path)
         return result
