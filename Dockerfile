@@ -8,7 +8,7 @@ WORKDIR /app
 
 RUN mkdir grabs
 RUN mkdir progress
-RUN mkdir temp
+RUN mkdir -p temp/subs
 
 COPY main.py .
 COPY episodus.py .

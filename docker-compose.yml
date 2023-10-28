@@ -3,12 +3,16 @@ services:
   sonarr-subman:
     image: sonarr-subman  # Use the name of your Docker image
     environment:
-      - HOST_URL="http://10.10.3.2:8989"
-      - HOST_API="6339d80ef2354a8dbdf3ce8fd4528d4d"
+      - HOST_URL=http://10.100.3.2:8989
+      - HOST_API=6339d80ef2354a8dbdf3ce8fd4528d4d
     container_name: sonarr-subman  # Set a container name
     volumes:
-      - /POOL1/PLEX_LOCAL:/POOL1/PLEX_LOCAL
-      - /home/monheim/Documents/subtitles:/subtitles
-      - /home/monheim/Documents/proj/sonarr/sonarr_submoverr/grabs/:/app/grabs
+      - /home/docker1/jellyfin/PLEX_LOCAL:/POOL1/PLEX_LOCAL #sonarr library path
+      - /home/docker1/subtitles:/subtitles #subtitles collection path
+      - /home/docker1/dock-comp/sonarr/cscript/grabs:/app/grabs #sonarr imported/upgraded path
+      - ./progress:/app/progress #current progress for entire extraction path
     stdin_open: true
     tty: true
+    command: ["python", "-i", "main.py", "-axm"] #extract entire Sonarr collection
+    #command: ["python", "-i", "main.py", "-gxm"] #treat queue from last imported/upgraded (default command)
+    #command: ["python", "-i", "main.py", "-xmT 402640"] #extract specific show with the TvDbId
