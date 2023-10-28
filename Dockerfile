@@ -1,6 +1,5 @@
 FROM python:3.11.4
 
-RUN mkdir -p /POOL1/PLEX_LOCAL/
 RUN mkdir -p /home/monheim/Documents/subtitles/
 
 RUN apt-get update && apt-get install -y mkvtoolnix
@@ -18,6 +17,8 @@ COPY requirements.txt .
 
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
+
+ENV ISDOCKER=docker
 
 CMD ["python", "main.py", "-gxm"]
 
