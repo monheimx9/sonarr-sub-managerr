@@ -11,15 +11,22 @@ console_handler.setFormatter(console_formater)
 logger.addHandler(handler)
 logger.addHandler(console_handler)
 logger.setLevel(logging.DEBUG)
-
 CONF_LOGGER = logger
-CONF_SONARR_HOST_URL = "http://10.100.3.2:8989"
-CONF_SONARR_API = "6339d80ef2354a8dbdf3ce8fd4528d4d"
+
+host_url = os.getenv("HOST_URL", "http://10.100.3.2:8989")
+sonarr_api = os.getenv("HOST_API", "6339d80ef2354a8dbdf3ce8fd4528d4d")
+is_prod = True if os.getenv("ISDOCKER") == "docker" else False
+CONF_LOGGER.info(f"HOST_URL={host_url}")
+CONF_LOGGER.info(f"API={sonarr_api}")
+CONF_SONARR_HOST_URL = host_url
+CONF_SONARR_API = sonarr_api
 CONF_TEMP_FOLDER = os.path.dirname(os.path.abspath(__file__)) + "/temp/"
 CONF_GRABING_FOLDER = "./grabs/"
-if os.getenv("ISDOCKER") == "docker":
+if is_prod:
+    CONF_LOGGER.info("Running in production environement")
     CONF_SUBTITLE_PATH = "/subtitles/"
 else:
+    CONF_LOGGER.info("Running in development environement")
     CONF_SUBTITLE_PATH = "/home/monheim/Documents/subtitles/"
 CONF_PROGRESS_FOLDER = "./progress/current.txt"
 CONF_DEFAULT_LANG = "fr"

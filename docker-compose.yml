@@ -2,10 +2,13 @@ version: '3'
 services:
   sonarr-subman:
     image: sonarr-subman  # Use the name of your Docker image
+    environment:
+      - HOST_URL="http://10.10.3.2:8989"
+      - HOST_API="6339d80ef2354a8dbdf3ce8fd4528d4d"
     container_name: sonarr-subman  # Set a container name
     volumes:
       - /POOL1/PLEX_LOCAL:/POOL1/PLEX_LOCAL
-      - /home/monheim/Documents/subtitles:/home/monheim/Documents/subtitles
+      - /home/monheim/Documents/subtitles:/subtitles
       - /home/monheim/Documents/proj/sonarr/sonarr_submoverr/grabs/:/app/grabs
     stdin_open: true
     tty: true
