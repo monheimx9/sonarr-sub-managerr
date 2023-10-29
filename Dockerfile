@@ -20,6 +20,6 @@ RUN pip install -r requirements.txt
 
 ENV ISDOCKER=docker
 
-CMD ["python", "main.py", "-gxm"]
+CMD ["python", "main.py"]
 
 
