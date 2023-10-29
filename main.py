@@ -17,6 +17,48 @@ LOG = configus.CONF_LOGGER
 
 to_remux = False
 export_external_tracks = False
+process_list = [
+    "Extract everything from Sonarr",
+    "Extract newly imported/upgraded episodes",
+    "Extract a specific serie/show",
+]
+
+
+def what_do_you_want() -> None:
+    global export_external_tracks
+    global to_remux
+    global process_list
+    p_list = process_list
+    LOG.info("Do you want to export external tracks?")
+    choice = input("[Y/n]: ")
+    export_external_tracks = False if choice.lower().startswith("n") else True
+    LOG.info(f"Export external tracks set to [{str(export_external_tracks)}]")
+    LOG.info("Do you want to remux all available tracks?")
+    choice = input("[Y/n]: ")
+    to_remux = False if choice.lower().startswith("n") else True
+    LOG.info(f"Remux is set to [{str(to_remux)}]")
+    LOG.info("Choose between the following options")
+    for i, proc in enumerate(p_list):
+        print(f"{i}. {proc}")
+    while True:
+        choice = input("N°?: ")
+        if choice.isnumeric():
+            choice = int(choice)
+            if 0 <= choice <= len(p_list):
+                break
+            else:
+                LOG.warning("Choose a valid option")
+    match choice:
+        case 0:
+            export_all_from_sonarr()
+        case 1:
+            treat_queue_from_sonarr(GRABING_FOLDER)
+        case 2:
+            LOG.info("Leave empty or 'y' if the id is from TvDbID")
+            is_tvdb = input("[Y/n]: ")
+            is_tvdb = False if is_tvdb.lower().startswith("n") else True
+            serie_id = input("Input serie Id: ")
+            export_specific_serie(int(serie_id), is_tvdb)
 
 
 def export_all_from_sonarr():
@@ -240,7 +282,7 @@ def main():
     if args.grabs:
         treat_queue_from_sonarr(GRABING_FOLDER)
     if not any(vars(args).values()):
-        treat_queue_from_sonarr(GRABING_FOLDER)
+        what_do_you_want()
 
 
 if __name__ == "__main__":
