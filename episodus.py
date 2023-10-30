@@ -998,16 +998,19 @@ class Subtitles:
                 lang = str(sub_track.language_ietf)[:2]
                 n = str(sub_track.trackname_combined)
                 e = str(sub_track.subtype)
-                for mkv_track in mkv_tracks:
-                    mkv_lang = str(mkv_track.language_ietf)[:2]
-                    mkv_n = str(mkv_track.trackname_combined)
-                    mkv_e = str(mkv_track.subtype)
-                    if lang in mkv_lang and n in mkv_n and e in mkv_e:
-                        sub_track.to_remux = False
-                        LOG.debug(f"Track already exists: {mkv_n}")
-                        break
-                    else:
-                        sub_track.to_remux = True
+                if len(mkv_tracks) > 0:
+                    for mkv_track in mkv_tracks:
+                        mkv_lang = str(mkv_track.language_ietf)[:2]
+                        mkv_n = str(mkv_track.trackname_combined)
+                        mkv_e = str(mkv_track.subtype)
+                        if lang in mkv_lang and n in mkv_n and e in mkv_e:
+                            sub_track.to_remux = False
+                            LOG.debug(f"Track already exists: {mkv_n}")
+                            break
+                        else:
+                            sub_track.to_remux = True
+                else:
+                    sub_track.to_remux = True
         self.__subs_list = sub_tracks
         return sub_tracks
 
