@@ -537,12 +537,12 @@ class SubSync:
         reflang: list[str] = []
         refpath = f"{TEMP_FOLDER}subs/ref"
         for r in refmkv:
-            reflang.append(str(r.language_ietf))
+            if "sup" not in r.subtype:
+                reflang.append(r.language_ietf)
         for t in unsync:
             if t.to_remux:
-                t.filepath = shutil.copy(
-                    str(t.filepath), f"{TEMP_FOLDER}subs/")
-                lngstr = str(t.language_ietf)
+                t.filepath = shutil.copy(t.filepath, f"{TEMP_FOLDER}subs/")
+                lngstr = t.language_ietf
                 lng_match = closest_match(lngstr, reflang, 100)
                 lngdiplay = Language.make(lng_match[0]).display_name()
                 LOG.debug(
@@ -552,14 +552,14 @@ class SubSync:
                 for r in refmkv:
                     if r.language_ietf in lng_match or "und" in lng_match:
                         if r.is_forced == t.is_forced:
-                            if "sup" not in str(r.subtype):
+                            if "sup" not in r.subtype:
                                 ref = export(
                                     vpath, str(
-                                        r.trackId), f"{refpath}.{str(r.subtype)}"
+                                        r.trackId), f"{refpath}.{r.subtype}"
                                 )
                                 try:
                                     t.filepath = sync_subtitles(
-                                        ref, str(t.filepath))
+                                        ref, t.filepath)
                                     break
                                 except Exception as e:
                                     LOG.error(e)

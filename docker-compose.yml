@@ -13,6 +13,6 @@ services:
       - ./progress:/app/progress #current progress for entire extraction path
     stdin_open: true
     tty: true
-    command: ["python", "-it", "main.py", "-axm"] #extract entire Sonarr collection
+    #command: ["python", "-it", "main.py", "-axm"] #extract entire Sonarr collection
     #command: ["python", "-it", "main.py", "-gxm"] #treat queue from last imported/upgraded (default command)
     #command: ["python", "-it", "main.py", "-xmT 402640"] #extract specific show with the TvDbId

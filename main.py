@@ -84,7 +84,8 @@ def export_all_from_sonarr():
 
 
 def export_specific_serie(serieID: int, is_tvdbid: bool = False) -> None:
-    so = Sonarr()
+    global export_external_tracks
+    so = Sonarr(export_external_tracks)
     if is_tvdbid:
         s = so.serie(serieID, is_tvdbid)[0]
         s_id = s.get("id")
