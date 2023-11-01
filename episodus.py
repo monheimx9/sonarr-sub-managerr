@@ -45,28 +45,28 @@ class TrackInfo:
     delay_ms: int = 0
 
     @property
-    def sdh(self) -> Optional[str]:
+    def sdh(self) -> str:
         if self.is_sdh:
             return "sdh."
         else:
             return ""
 
     @property
-    def forced(self) -> Optional[str]:
+    def forced(self) -> str:
         if self.is_forced:
             return "forced."
         else:
             return ""
 
     @property
-    def default(self) -> Optional[str]:
+    def default(self) -> str:
         if self.is_default:
             return "default."
         else:
             return ""
 
     @property
-    def trackname_combined(self) -> Optional[str]:
+    def trackname_combined(self) -> str:
         re_p = r"\[.+\]-\[.+\]"
         if re.search(re_p, str(self.trackname)) is not None:
             return f"{self.trackname}"
