@@ -83,8 +83,7 @@ def check_forced(track_name: str) -> bool:
     keywords = ["signs", "songs", "forc", "s&s", "kara", "édit", "edit"]
     track_name_lower = track_name.lower()
     forced = (
-        "forced." if any(
-            keyword in track_name_lower for keyword in keywords) else ""
+        "forced." if any(keyword in track_name_lower for keyword in keywords) else ""
     )
     return True if forced == "forced." else False
 
@@ -284,8 +283,7 @@ def ask_user_input(header: dict, parsed_name: dict, guess: bool = False) -> Trac
             if choice.lower().startswith("n"):
                 t.is_sdh = not t.is_sdh
                 print(f"Hearing impaired track is now {t.is_sdh}")
-            t.trackname = parsed_name.get(
-                "trackname", header.get("title", "und"))
+            t.trackname = parsed_name.get("trackname", header.get("title", "und"))
             print(f"Is Track Name correct ? Track Name is {t.trackname}")
             choice = input(r"[Y/n] : ")
             if choice.lower().startswith("n"):
@@ -293,8 +291,7 @@ def ask_user_input(header: dict, parsed_name: dict, guess: bool = False) -> Trac
                 t.trackname = option_selector(key_list, val_list, txt)
                 print(f"Track Name is now : {t.trackname}")
             t.language_ietf = parsed_name.get("tracklang", "")
-            print(
-                f"Is Track Language correct ? : Language is {t.language_ietf}")
+            print(f"Is Track Language correct ? : Language is {t.language_ietf}")
             print(
                 f'Identified language in subtitle file is : '
                 f'{parsed_name.get("identified_lang", "undefiend")}'
@@ -429,8 +426,7 @@ def read_ass_dialogs(ass_events) -> str:
 def read_srt_dialogs(content: str) -> str:
     timecode = r"\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}"
     cleaned = re.sub(timecode, "", content)
-    cleaned = "\n".join(line.strip()
-                        for line in cleaned.splitlines() if line.strip())
+    cleaned = "\n".join(line.strip() for line in cleaned.splitlines() if line.strip())
     return cleaned.replace("\n", " ")
 
 
@@ -554,12 +550,10 @@ class SubSync:
                         if r.is_forced == t.is_forced:
                             if "sup" not in r.subtype:
                                 ref = export(
-                                    vpath, str(
-                                        r.trackId), f"{refpath}.{r.subtype}"
+                                    vpath, str(r.trackId), f"{refpath}.{r.subtype}"
                                 )
                                 try:
-                                    t.filepath = sync_subtitles(
-                                        ref, t.filepath)
+                                    t.filepath = sync_subtitles(ref, t.filepath)
                                     break
                                 except Exception as e:
                                     LOG.error(e)
@@ -920,8 +914,7 @@ class Sonarr:
         self._serie_id = serie_id
         ep_list = self._sonarr.get_episode(serie_id, series=True)
         self._episode_list = ep_list
-        LOG.debug(
-            f"Get ep list for serie: {serie_id} - Lenght: {len(ep_list)} eps")
+        LOG.debug(f"Get ep list for serie: {serie_id} - Lenght: {len(ep_list)} eps")
         return self._episode_list
 
     def episode(self, ep_id: int | str) -> Episode:
@@ -962,8 +955,7 @@ class Sonarr:
                 f"External subtitles found alongside the episode: "
                 f"{len(track_list)} track(s) present in folder"
             )
-            self._external_tracks = build_subtitle_tags(
-                ep_path, track_list, guess)
+            self._external_tracks = build_subtitle_tags(ep_path, track_list, guess)
             self._move_ext_tracks()
 
     def _move_ext_tracks(self) -> None:

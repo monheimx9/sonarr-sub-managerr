@@ -77,8 +77,7 @@ def export_all_from_sonarr():
             LOG.info(f"Current serie progress: {current_serie}/{total_series}")
             ep_list = sonarr.episode_list(serie_id)
             export_episodes(
-                ep_list, sonarr, serie.get(
-                    "title"), serie_tvid, serie.get("path")
+                ep_list, sonarr, serie.get("title"), serie_tvid, serie.get("path")
             )
             save_progress_sonarr(serie_id)
 
@@ -185,15 +184,12 @@ def treat_queue_from_sonarr(source_folder) -> None:
     for file in files:
         file_path_full = os.path.join(source_folder, file)
         ep.sonarr_var = get_sonarr_var(file_path_full)
-        LOG.info(
-            f"S{ep.season}E{ep.number} tvdbId: {ep.tvdbid} {ep.serie_title}")
+        LOG.info(f"S{ep.season}E{ep.number} tvdbId: {ep.tvdbid} {ep.serie_title}")
         monitored = sonarr.is_monitored(ep.ep_id)
         if not monitored:
-            LOG.info(
-                f"S{ep.season}E{ep.number} from {ep.tvdbid} isn't monitored")
+            LOG.info(f"S{ep.season}E{ep.number} from {ep.tvdbid} isn't monitored")
         if monitored:
-            export_ep(ep.video_path, ep.tvdbid,
-                      ep.number, ep.season, ep.release)
+            export_ep(ep.video_path, ep.tvdbid, ep.number, ep.season, ep.release)
         LOG.debug(f"Removing {file_path_full}")
         if os.path.exists(file_path_full):
             os.remove(file_path_full)
@@ -214,8 +210,7 @@ def read_progress_sonarr() -> list:
     try:
         with open(PROGRESS_FOLDER, "r") as file:
             series = file.read()
-            serie_ids = [serie.strip()
-                         for serie in series.split(";") if serie.strip()]
+            serie_ids = [serie.strip() for serie in series.split(";") if serie.strip()]
             LOG.debug(f"Last serieID saved in progress is: {serie_ids[-1]}")
             return serie_ids
     except FileNotFoundError:
